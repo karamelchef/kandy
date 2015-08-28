@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package se.kth.servicerecommander.ejb.datacontroller;
+package se.kth.servicerecommander.ejb;
 
 import java.util.List;
 import javax.persistence.EntityManager;

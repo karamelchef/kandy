@@ -9,7 +9,7 @@ import java.util.List;
 import javax.batch.api.chunk.AbstractItemWriter;
 import javax.ejb.EJB;
 import javax.inject.Named;
-import se.kth.servicerecommander.ejb.datacontroller.AwsEc2SpotInstanceFacadeLocal;
+import se.kth.servicerecommander.ejb.awsec2spotinstance.AwsEc2SpotInstanceFacadeLocal;
 import se.kth.servicerecommander.model.AwsEc2SpotInstance;
 
 /**

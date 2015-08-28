@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package se.kth.servicerecommander.ejb.datacontroller;
+package se.kth.servicerecommander.ejb.awsec2spotinstance;
 
+import se.kth.servicerecommander.ejb.AbstractFacade;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;

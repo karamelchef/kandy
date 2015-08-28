@@ -42,3 +42,8 @@ Should be stored in a file in specified path for the server to find them. This i
 aws_access_key_id = ........
 aws_secret_access_key = .........
 ```
+
+#### Restful webservice is available at :
+```sh
+http://Server:8080/CloudServiceRecommander/rest/
+```
