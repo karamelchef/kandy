@@ -9,7 +9,7 @@ import java.sql.Timestamp;
 import javax.batch.api.chunk.ItemProcessor;
 import javax.inject.Named;
 import org.jclouds.aws.ec2.domain.Spot;
-import se.kth.servicerecommander.model.SpotInstance;
+import se.kth.servicerecommander.model.AwsEc2SpotInstance;
 
 /**
  *
@@ -19,10 +19,10 @@ import se.kth.servicerecommander.model.SpotInstance;
 public class SpotInstanceItemProcessor implements ItemProcessor {
 
   @Override
-  public SpotInstance processItem(Object item) throws Exception {
+  public AwsEc2SpotInstance processItem(Object item) throws Exception {
     Spot spot = (Spot) item;
-    return new SpotInstance(spot.getRegion(), spot.getInstanceType(), spot.getProductDescription(), spot.getSpotPrice(),
-        new Timestamp(spot.getTimestamp().getTime()), spot.getAvailabilityZone());
+    return new AwsEc2SpotInstance(spot.getRegion(), spot.getInstanceType(), spot.getProductDescription(), spot.
+        getSpotPrice(), new Timestamp(spot.getTimestamp().getTime()), spot.getAvailabilityZone());
   }
 
 }

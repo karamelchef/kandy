@@ -8,7 +8,7 @@ package se.kth.servicerecommander.ejb.datacontroller;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import se.kth.servicerecommander.model.SpotInstance;
+import se.kth.servicerecommander.model.AwsEc2SpotInstance;
 
 /**
  * Enterprise java bean(Session bean) - Implements the business logic for transactions with database
@@ -16,7 +16,8 @@ import se.kth.servicerecommander.model.SpotInstance;
  * @author Hossein
  */
 @Stateless
-public class SpotInstanceFacade extends AbstractFacade<SpotInstance> implements SpotInstanceFacadeLocal {
+public class AwsEc2SpotInstanceFacade extends AbstractFacade<AwsEc2SpotInstance> implements
+    AwsEc2SpotInstanceFacadeLocal {
 
   @PersistenceContext(unitName = "ServiceRecommander-ejb_PU")
   private EntityManager em;
@@ -26,8 +27,8 @@ public class SpotInstanceFacade extends AbstractFacade<SpotInstance> implements 
     return em;
   }
 
-  public SpotInstanceFacade() {
-    super(SpotInstance.class);
+  public AwsEc2SpotInstanceFacade() {
+    super(AwsEc2SpotInstance.class);
   }
 
 }

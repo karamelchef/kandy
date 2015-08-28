@@ -18,7 +18,7 @@ import javax.persistence.Id;
  * @author Hossein
  */
 @Entity
-public class SpotInstance implements Serializable {
+public class AwsEc2SpotInstance implements Serializable {
 
   private static final long serialVersionUID = 1L;
   @Id
@@ -32,7 +32,8 @@ public class SpotInstance implements Serializable {
   private Timestamp timeStamp;
   private String availabilityZone;
 
-  public SpotInstance(String region, String instanceType, String productDescription, float price, Timestamp timeStamp,
+  public AwsEc2SpotInstance(String region, String instanceType, String productDescription, float price,
+      Timestamp timeStamp,
       String availabilityZone) {
     this.region = region;
     this.instanceType = instanceType;
@@ -42,7 +43,7 @@ public class SpotInstance implements Serializable {
     this.availabilityZone = availabilityZone;
   }
 
-  public SpotInstance() {
+  public AwsEc2SpotInstance() {
   }
 
   public Long getId() {
@@ -111,10 +112,10 @@ public class SpotInstance implements Serializable {
   @Override
   public boolean equals(Object object) {
     // TODO: Warning - this method won't work in the case the id fields are not set
-    if (!(object instanceof SpotInstance)) {
+    if (!(object instanceof AwsEc2SpotInstance)) {
       return false;
     }
-    SpotInstance other = (SpotInstance) object;
+    AwsEc2SpotInstance other = (AwsEc2SpotInstance) object;
     if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
       return false;
     }

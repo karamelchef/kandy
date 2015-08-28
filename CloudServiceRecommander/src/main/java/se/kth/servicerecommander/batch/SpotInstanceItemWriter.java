@@ -9,8 +9,8 @@ import java.util.List;
 import javax.batch.api.chunk.AbstractItemWriter;
 import javax.ejb.EJB;
 import javax.inject.Named;
-import se.kth.servicerecommander.ejb.datacontroller.SpotInstanceFacadeLocal;
-import se.kth.servicerecommander.model.SpotInstance;
+import se.kth.servicerecommander.ejb.datacontroller.AwsEc2SpotInstanceFacadeLocal;
+import se.kth.servicerecommander.model.AwsEc2SpotInstance;
 
 /**
  *
@@ -20,11 +20,11 @@ import se.kth.servicerecommander.model.SpotInstance;
 public class SpotInstanceItemWriter extends AbstractItemWriter {
 
   @EJB
-  private SpotInstanceFacadeLocal spotInstanceFacade;
+  private AwsEc2SpotInstanceFacadeLocal spotInstanceFacade;
 
   @Override
   public void writeItems(List<Object> items) throws Exception {
-    spotInstanceFacade.create((SpotInstance) items.get(0));
+    spotInstanceFacade.create((AwsEc2SpotInstance) items.get(0));
   }
 
 }
