@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html">
+  <h:head>
+    <title>Spot Instance batch job manager</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  </h:head>
+  <h:body>
+    <h1>Spot Instance batch job manager</h1>
+    <hr/>
+    <h:form>
+      <p>
+        <h:commandButton value="Start Job" action="#{spotInstanceBatchJobManager.startFetchingSpotPrices}"/>
+        <h:commandButton value="Stop Job" action="#{spotInstanceBatchJobManager.stopFetchingSpotPrices}"/>
+      </p>
+      <p>
+        <h:outputLabel rendered="#{spotInstanceBatchJobManager.batchJobRunning}" value="Spot instance batch job RUNNING"/>
+        <h:outputLabel rendered="#{!spotInstanceBatchJobManager.batchJobRunning}" value="Spot instance batch job STOPED"/>
+      </p>
+      <p>
+        <h:outputLabel rendered="" value="say"/>
+      </p>
+    </h:form>
+  </h:body>
+</html>
