@@ -15,7 +15,7 @@ Payara 4.1 is used instead of glassfish as server + JavaEE 7
 payara/lib directory. For example, copy mysql-connector-java-5.1.30-bin.jar to C:\payara-install-path\payara\lib. Restart the payara Application Server.
 2. Creating a Jdbc Connection Pool and Jdbc resource used as datasource in persistence.xml
 [tutorial](https://netbeans.org/kb/docs/web/mysql-webapp.html)
-3. An empty databse called **servicerecommander** should be created in mysql manually.
+3. An empty databse called **servicerecommender** should be created in mysql manually.
 
 #### Payara configration for batch job : 
 JavaEE Batch does not support mysql when deployed on glassfish so we use payara
@@ -40,7 +40,7 @@ aws_secret_access_key = .........
 
 #### Restful webservice is available at :
 ```sh
-http://Server:8080/CloudServiceRecommander/rest/
+http://Server:8080/CloudServiceRecommender/karamel/
 ```
 
 #### EJB timer configuration (optional):
