@@ -16,9 +16,9 @@ import se.kth.servicerecommender.model.AwsEc2SpotInstance;
 @Local
 public interface AwsEc2SpotInstanceFacadeLocal {
 
-  void create(AwsEc2SpotInstance spotInstance);
+  AwsEc2SpotInstance create(AwsEc2SpotInstance spotInstance);
 
-  void edit(AwsEc2SpotInstance spotInstance);
+  AwsEc2SpotInstance edit(AwsEc2SpotInstance spotInstance);
 
   void remove(AwsEc2SpotInstance spotInstance);
 
@@ -29,5 +29,5 @@ public interface AwsEc2SpotInstanceFacadeLocal {
   List<AwsEc2SpotInstance> findRange(int[] range);
 
   int count();
-  
+
 }

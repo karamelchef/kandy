@@ -14,7 +14,6 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -26,7 +25,7 @@ import se.kth.servicerecommender.model.KaramelStatistics;
  * @author Hossein
  */
 @Stateless
-@Path("")
+@Path("stats/cluster")
 public class KaramelStatisticsFacadeREST extends AbstractFacade<KaramelStatistics> {
 
   @PersistenceContext(unitName = "ServiceRecommender-ejb_PU")
@@ -37,28 +36,32 @@ public class KaramelStatisticsFacadeREST extends AbstractFacade<KaramelStatistic
   }
 
   @POST
+  @Path("store")
   @Consumes({"text/plain"})
-  public void create(String statistics) {
-    super.create(new KaramelStatistics(new Date(), statistics));
+  @Produces("text/plain")
+  public String create(String statistics) {
+    KaramelStatistics karamelStatistics = super.create(new KaramelStatistics(new Date(), statistics));
+    return String.valueOf(karamelStatistics.getId());
   }
 
-  @PUT
-  @Path("{id}")
-  @Consumes({"application/xml", "application/json"})
-  public void edit(
-      @PathParam("id") Long id, KaramelStatistics entity) {
-    super.edit(entity);
+  @POST
+  @Path("update/{id}")
+  @Consumes({"text/plain"})
+  @Produces({"text/plain"})
+  public String edit(@PathParam("id") Long id, String statistics) {
+    KaramelStatistics karamelStatistics = super.edit(new KaramelStatistics(id, new Date(), statistics));
+    return String.valueOf(karamelStatistics.getId());
   }
 
   @DELETE
-  @Path("{id}")
+  @Path("remove/{id}")
   public void remove(
       @PathParam("id") Long id) {
     super.remove(super.find(id));
   }
 
   @GET
-  @Path("{id}")
+  @Path("find/{id}")
   @Produces({"application/xml", "application/json"})
   public KaramelStatistics find(
       @PathParam("id") Long id) {
@@ -66,7 +69,7 @@ public class KaramelStatisticsFacadeREST extends AbstractFacade<KaramelStatistic
   }
 
   @GET
-  @Path("{from}/{to}")
+  @Path("find/{from}/{to}")
   @Produces({"application/xml", "application/json"})
   public List<KaramelStatistics> findRange(
       @PathParam("from") Integer from,

@@ -12,7 +12,7 @@ import javax.ws.rs.core.Application;
  *
  * @author Hossein
  */
-@javax.ws.rs.ApplicationPath("karamel")
+@javax.ws.rs.ApplicationPath("api")
 public class ApplicationConfig extends Application {
 
   @Override

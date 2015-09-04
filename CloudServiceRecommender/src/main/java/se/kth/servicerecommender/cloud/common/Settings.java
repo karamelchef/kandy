@@ -34,8 +34,8 @@ public class Settings {
       || OS_NAME.toLowerCase().contains("linux");
   public static final String DEFAULT_PUBKEY_PATH = UNIX_OS ? USER_HOME + "/.ssh/id_rsa.pub" : null;
   public static final String DEFAULT_PRIKEY_PATH = UNIX_OS ? USER_HOME + "/.ssh/id_rsa" : null;
-  public static final String DEFAULT_CREDENTIALS_PATH = UNIX_OS ? "/opt/sina/.servicerecommander/.aws"
-      : "c:\\opt\\sina\\.servicerecommander\\.aws";
+  public static final String DEFAULT_CREDENTIALS_PATH = UNIX_OS ? "/opt/sina/.servicerecommender/.aws"
+      : "c:\\opt\\sina\\.servicerecommender\\.aws";
   public static final String SSH_PUBKEY_PATH_KEY = "ssh.publickey.path";
   public static final String SSH_PRIVKEY_PATH_KEY = "ssh.privatekey.path";
   public static final String SSH_PRIVKEY_PASSPHRASE = "ssh.privatekey.passphrase";
@@ -46,16 +46,16 @@ public class Settings {
   public static final String AWS_KEYPAIR_NAME_KEY = "aws.keypair.name";
   public static final String GCE_JSON_KEY_FILE_PATH = "gce.jsonkey.path";
 
-  public static final String SERVICERECOMMANDER_ROOT_PATH = USER_HOME + File.separator + ".servicerecommander";
+  public static final String SERVICERECOMMENDER_ROOT_PATH = USER_HOME + File.separator + ".servicerecommender";
   public static final String YAML_FILE_NAME = "definition.yaml";
-  public static final String SERVICERECOMMANDER_CONF_NAME = "conf";
-  public static final String SERVICERECOMMANDER_CREDENTIALS_NAME = "credentials";
+  public static final String SERVICERECOMMENDER_CONF_NAME = "conf";
+  public static final String SERVICERECOMMENDER_CREDENTIALS_NAME = "credentials";
   public static final String SSH_FOLDER_NAME = ".ssh";
   public static final String TMP_FOLDER_NAME = "tmp";
   public static final String SYSTEM_TMP_FOLDER_PATH = "/" + TMP_FOLDER_NAME;
-  public static final String SERVICERECOMMANDER_SSH_PATH = SERVICERECOMMANDER_ROOT_PATH + File.separator
+  public static final String SERVICERECOMMENDER_SSH_PATH = SERVICERECOMMENDER_ROOT_PATH + File.separator
       + SSH_FOLDER_NAME;
-  public static final String SERVICERECOMMANDER_TMP_PATH = SERVICERECOMMANDER_ROOT_PATH + File.separator
+  public static final String SERVICERECOMMENDER_TMP_PATH = SERVICERECOMMENDER_ROOT_PATH + File.separator
       + TMP_FOLDER_NAME;
   public static final String SSH_PUBKEY_FILENAME = "ida_rsa.pub";
   public static final String SSH_PRIVKEY_FILENAME = "ida_rsa";

@@ -34,7 +34,7 @@ public class Confs<K extends String, V extends String> extends Properties {
   }
 
   public void writeServiceRecommanderConfs() {
-    File folder = new File(Settings.SERVICERECOMMANDER_ROOT_PATH);
+    File folder = new File(Settings.SERVICERECOMMENDER_ROOT_PATH);
     writeConfs(folder);
   }
 
@@ -45,7 +45,7 @@ public class Confs<K extends String, V extends String> extends Properties {
       if (!folder.exists()) {
         folder.mkdirs();
       }
-      File file = new File(folder, Settings.SERVICERECOMMANDER_CONF_NAME);
+      File file = new File(folder, Settings.SERVICERECOMMENDER_CONF_NAME);
       out = new FileOutputStream(file);
       store(out, "ServiceRecommander configurations");
       logger.info("Conf file generated");
@@ -68,7 +68,7 @@ public class Confs<K extends String, V extends String> extends Properties {
   public static Confs loadServiceRecommanderCredentialsConf() {
 
     Confs prop = new Confs();
-    File file = new File(Settings.DEFAULT_CREDENTIALS_PATH, Settings.SERVICERECOMMANDER_CREDENTIALS_NAME);
+    File file = new File(Settings.DEFAULT_CREDENTIALS_PATH, Settings.SERVICERECOMMENDER_CREDENTIALS_NAME);
     FileInputStream fis = null;
     try {
       fis = new FileInputStream(file);
@@ -85,14 +85,14 @@ public class Confs<K extends String, V extends String> extends Properties {
    * @return
    */
   public static Confs loadServiceRecommanderConfs() {
-    return loadConfs(Settings.SERVICERECOMMANDER_ROOT_PATH);
+    return loadConfs(Settings.SERVICERECOMMENDER_ROOT_PATH);
   }
 
   public static Confs loadConfs(String folder) {
     Confs prop = new Confs();
     try {
       File folders = new File(folder);
-      File file = new File(folders, Settings.SERVICERECOMMANDER_CONF_NAME);
+      File file = new File(folders, Settings.SERVICERECOMMENDER_CONF_NAME);
       if (!folders.exists()) {
         logger.info(String.format("Created empty configuration folder cause didn't exist. %s'", folder));
         folders.mkdirs();

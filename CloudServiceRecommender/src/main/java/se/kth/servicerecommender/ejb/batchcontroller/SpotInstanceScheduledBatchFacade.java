@@ -26,7 +26,7 @@ public class SpotInstanceScheduledBatchFacade {
   /**
    * Delay between running the jobs
    */
-  private static final int mDelay = 360;
+  private static final int mDelay = 24;
   private static final Logger logger = Logger.getLogger(SpotInstanceScheduledBatchFacade.class);
 
   @Resource
@@ -37,7 +37,7 @@ public class SpotInstanceScheduledBatchFacade {
   }
 
   public void runJob() {
-    scheduledFuture = mExecutor.scheduleWithFixedDelay(new SpotInstanceJob(), 0, mDelay, TimeUnit.SECONDS);
+    scheduledFuture = mExecutor.scheduleWithFixedDelay(new SpotInstanceJob(), 0, mDelay, TimeUnit.HOURS);
   }
 
   public void stopJob() {

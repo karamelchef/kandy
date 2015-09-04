@@ -11,10 +11,10 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -28,12 +28,12 @@ public class KaramelStatistics implements Serializable {
   private static final long serialVersionUID = 1L;
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
-  private Integer id;
+  private Long id;
   @NotNull
   @Temporal(TemporalType.TIMESTAMP)
   private Date timeStamp;
   @NotNull
-  @Size(min = 1, max = 5000)
+  @Lob
   private String statistics;
 
   public KaramelStatistics() {
@@ -44,21 +44,21 @@ public class KaramelStatistics implements Serializable {
     this.statistics = statistics;
   }
 
-  public KaramelStatistics(Integer id) {
+  public KaramelStatistics(Long id) {
     this.id = id;
   }
 
-  public KaramelStatistics(Integer id, Date timeStamp, String statistics) {
+  public KaramelStatistics(Long id, Date timeStamp, String statistics) {
     this.id = id;
     this.timeStamp = timeStamp;
     this.statistics = statistics;
   }
 
-  public Integer getId() {
+  public Long getId() {
     return id;
   }
 
-  public void setId(Integer id) {
+  public void setId(Long id) {
     this.id = id;
   }
 

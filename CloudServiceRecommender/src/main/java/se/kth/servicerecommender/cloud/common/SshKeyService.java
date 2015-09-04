@@ -31,7 +31,7 @@ public class SshKeyService {
   private static final Logger logger = Logger.getLogger(SshKeyService.class);
 
   public static SshKeyPair generateAndStoreSshKeys() {
-    File folder = new File(Settings.SERVICERECOMMANDER_SSH_PATH);
+    File folder = new File(Settings.SERVICERECOMMENDER_SSH_PATH);
     return generateAndStoreSshKeys(folder);
   }
 
