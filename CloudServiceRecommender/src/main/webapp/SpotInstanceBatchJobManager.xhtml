@@ -6,7 +6,8 @@ and open the template in the editor.
 -->
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:h="http://java.sun.com/jsf/html">
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui">
   <h:head>
     <title>Spot Instance batch job manager</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -14,7 +15,7 @@ and open the template in the editor.
   <h:body>
     <h1>Spot Instance batch job manager</h1>
     <hr/>
-    <h:form>
+    <h:form id="spot">
       <p>
         <h:commandButton value="Start Job" action="#{spotInstanceBatchJobManager.startFetchingSpotPrices}"/>
         <h:commandButton value="Stop Job" action="#{spotInstanceBatchJobManager.stopFetchingSpotPrices}"/>
@@ -24,8 +25,18 @@ and open the template in the editor.
         <h:outputLabel rendered="#{!spotInstanceBatchJobManager.batchJobRunning}" value="Spot instance batch job STOPED"/>
       </p>
       <p>
-        <h:outputLabel rendered="" value="say"/>
+        <h:outputText id="out" styleClass="ui-widget display"/>
       </p>
     </h:form>
+
+    <p:socket onMessage="handleMessage" channel="/notify"/>
+
+    <script type="text/javascript">
+      function handleMessage(message) {
+        $('.display').html(message);
+        console.log(message);
+      }
+    </script>
+
   </h:body>
 </html>

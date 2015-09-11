@@ -12,18 +12,29 @@
     <servlet-class>javax.faces.webapp.FacesServlet</servlet-class>
     <load-on-startup>1</load-on-startup>
   </servlet>
-
   <servlet-mapping>
     <servlet-name>Faces Servlet</servlet-name>
     <url-pattern>/faces/*</url-pattern>
   </servlet-mapping>
 
-  <session-config>
-    <session-timeout>
-      60
-    </session-timeout>
-  </session-config>
+  <servlet>
+    <servlet-name>Push Servlet</servlet-name>
+    <servlet-class>org.primefaces.push.PushServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+    <async-supported>true</async-supported>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>Push Servlet</servlet-name>
+    <url-pattern>/primepush/*</url-pattern>
+  </servlet-mapping>
 
+  <!--
+    <session-config>
+      <session-timeout>
+        60
+      </session-timeout>
+    </session-config>
+  -->
   <welcome-file-list>
     <welcome-file>faces/SpotInstanceBatchJobManager.xhtml</welcome-file>
   </welcome-file-list>

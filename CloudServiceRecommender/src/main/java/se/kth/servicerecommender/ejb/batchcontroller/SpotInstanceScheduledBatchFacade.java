@@ -41,8 +41,16 @@ public class SpotInstanceScheduledBatchFacade {
   }
 
   public void stopJob() {
-    scheduledFuture.cancel(true);
-    logger.debug("Stop the job: " + SPOT_INSTANCE_JOB);
+    if (scheduledFuture != null) {
+      scheduledFuture.cancel(true);
+      logger.debug("Stop the job: " + SPOT_INSTANCE_JOB);
+    }
+  }
 
+  public boolean isJobRunning() {
+    if (scheduledFuture == null) {
+      return false;
+    }
+    return !scheduledFuture.isCancelled();
   }
 }

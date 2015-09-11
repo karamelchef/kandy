@@ -7,7 +7,7 @@ package se.kth.servicerecommender.view;
 
 import java.io.Serializable;
 import javax.ejb.EJB;
-import javax.enterprise.context.ConversationScoped;
+import javax.enterprise.context.SessionScoped;
 import javax.inject.Named;
 import se.kth.servicerecommender.ejb.batchcontroller.SpotInstanceScheduledBatchFacade;
 
@@ -17,26 +17,22 @@ import se.kth.servicerecommender.ejb.batchcontroller.SpotInstanceScheduledBatchF
  * @author Hossein
  */
 @Named("spotInstanceBatchJobManager")
-@ConversationScoped
+@SessionScoped
 public class SpotInstanceBatchJobManager implements Serializable {
 
   @EJB
   private SpotInstanceScheduledBatchFacade spotInstanceScheduledBatchFacade;
 
-  private boolean isBatchJobRunning = false;
-
   public void startFetchingSpotPrices() {
     spotInstanceScheduledBatchFacade.runJob();
-    isBatchJobRunning = true;
   }
 
   public void stopFetchingSpotPrices() {
     spotInstanceScheduledBatchFacade.stopJob();
-    isBatchJobRunning = false;
   }
 
   public boolean isBatchJobRunning() {
-    return isBatchJobRunning;
+    return spotInstanceScheduledBatchFacade.isJobRunning();
   }
 
   public SpotInstanceBatchJobManager() {
