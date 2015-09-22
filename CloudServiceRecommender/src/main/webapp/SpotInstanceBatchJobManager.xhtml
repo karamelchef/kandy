@@ -9,20 +9,20 @@ and open the template in the editor.
       xmlns:h="http://java.sun.com/jsf/html"
       xmlns:p="http://primefaces.org/ui">
   <h:head>
-    <title>Spot Instance batch job manager</title>
+    <title>Aws Ec2 Instances Price</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   </h:head>
   <h:body>
-    <h1>Spot Instance batch job manager</h1>
+    <h1>Aws Ec2 Instances Price Downloader</h1>
     <hr/>
     <h:form id="spot">
       <p>
-        <h:commandButton value="Start Job" action="#{spotInstanceBatchJobManager.startFetchingSpotPrices}"/>
-        <h:commandButton value="Stop Job" action="#{spotInstanceBatchJobManager.stopFetchingSpotPrices}"/>
+        <h:commandButton value="Start Download" action="#{spotInstanceBatchJobManager.startFetchingSpotPrices}"/>
+        <h:commandButton value="Stop Download" action="#{spotInstanceBatchJobManager.stopFetchingSpotPrices}"/>
       </p>
       <p>
-        <h:outputLabel rendered="#{spotInstanceBatchJobManager.batchJobRunning}" value="Spot instance batch job RUNNING"/>
-        <h:outputLabel rendered="#{!spotInstanceBatchJobManager.batchJobRunning}" value="Spot instance batch job STOPED"/>
+        <h:outputLabel rendered="#{spotInstanceBatchJobManager.batchJobRunning}" value="Aws ec2 instance batch job RUNNING"/>
+        <h:outputLabel rendered="#{!spotInstanceBatchJobManager.batchJobRunning}" value="Aws ec2 instance batch job STOPED"/>
       </p>
       <p>
         <h:outputText id="out" styleClass="ui-widget display"/>

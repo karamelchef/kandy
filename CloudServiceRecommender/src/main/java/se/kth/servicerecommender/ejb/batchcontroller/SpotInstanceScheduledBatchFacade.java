@@ -11,8 +11,8 @@ import javax.annotation.Resource;
 import javax.ejb.Stateless;
 import javax.enterprise.concurrent.ManagedScheduledExecutorService;
 import org.apache.log4j.Logger;
-import se.kth.servicerecommender.batch.executor.SpotInstanceJob;
-import static se.kth.servicerecommender.batch.executor.SpotInstanceJob.SPOT_INSTANCE_JOB;
+import se.kth.servicerecommender.batch.executor.AwsEc2InstanceJob;
+import static se.kth.servicerecommender.batch.executor.AwsEc2InstanceJob.AWSEC2_INSTANCE_JOB;
 
 /**
  * Enterprise java bean (Session bean). Provides business logic to start/stop batch job to fetch spot instances prices
@@ -37,13 +37,13 @@ public class SpotInstanceScheduledBatchFacade {
   }
 
   public void runJob() {
-    scheduledFuture = mExecutor.scheduleWithFixedDelay(new SpotInstanceJob(), 0, mDelay, TimeUnit.HOURS);
+    scheduledFuture = mExecutor.scheduleWithFixedDelay(new AwsEc2InstanceJob(), 0, mDelay, TimeUnit.HOURS);
   }
 
   public void stopJob() {
     if (scheduledFuture != null) {
       scheduledFuture.cancel(true);
-      logger.debug("Stop the job: " + SPOT_INSTANCE_JOB);
+      logger.debug("Stop the job: " + AWSEC2_INSTANCE_JOB);
     }
   }
 

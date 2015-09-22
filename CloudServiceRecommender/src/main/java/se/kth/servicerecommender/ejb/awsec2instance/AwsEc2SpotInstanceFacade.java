@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package se.kth.servicerecommender.ejb.awsec2spotinstance;
+package se.kth.servicerecommender.ejb.awsec2instance;
 
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -17,8 +17,7 @@ import se.kth.servicerecommender.model.AwsEc2SpotInstance;
  * @author Hossein
  */
 @Stateless
-public class AwsEc2SpotInstanceFacade extends AbstractFacade<AwsEc2SpotInstance> implements
-    AwsEc2SpotInstanceFacadeLocal {
+public class AwsEc2SpotInstanceFacade extends AbstractFacade<AwsEc2SpotInstance> {
 
   @PersistenceContext(unitName = "ServiceRecommender-ejb_PU")
   private EntityManager em;

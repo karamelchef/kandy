@@ -15,16 +15,16 @@ import org.apache.log4j.Logger;
  *
  * @author Hossein
  */
-public class SpotInstanceJob implements Runnable {
+public class AwsEc2InstanceJob implements Runnable {
 
   public static List<Long> mExecutedBatchs = new ArrayList<>();
-  private static final Logger logger = Logger.getLogger(SpotInstanceJob.class);
-  public static final String SPOT_INSTANCE_JOB = "spotInstanceJob";
+  private static final Logger logger = Logger.getLogger(AwsEc2InstanceJob.class);
+  public static final String AWSEC2_INSTANCE_JOB = "awsEc2InstanceJob";
 
   @Override
   public void run() {
-    logger.debug("Start the job:  " + SPOT_INSTANCE_JOB);
-    mExecutedBatchs.add(BatchRuntime.getJobOperator().start(SPOT_INSTANCE_JOB, new Properties()));
+    logger.debug("Start the job:  " + AWSEC2_INSTANCE_JOB);
+    mExecutedBatchs.add(BatchRuntime.getJobOperator().start(AWSEC2_INSTANCE_JOB, new Properties()));
   }
 
 }

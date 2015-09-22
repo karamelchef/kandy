@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job id="awsEc2InstanceJob"
+     xmlns="http://xmlns.jcp.org/xml/ns/javaee" version="1.0">
+
+  <split id="split">
+    <flow id="flow1">
+      <step id="spot_Instances" >
+        <chunk item-count="1">
+          <reader ref="spotInstanceItemReader"/>
+          <processor ref="spotInstanceItemProcessor"/>
+          <writer ref="spotInstanceItemWriter"/>
+        </chunk>
+      </step>
+    </flow>
+    <flow id="flow2">
+      <step id="reserved_ondemand_Instances">
+        <chunk item-count="1">
+          <reader ref="awsEc2InstanceItemReader"/>
+          <processor ref="awsEc2InstanceItemProcessor"/>
+          <writer ref="awsEc2InstanceItemWriter"/>
+        </chunk>
+      </step>
+    </flow>
+  </split>
+</job>
