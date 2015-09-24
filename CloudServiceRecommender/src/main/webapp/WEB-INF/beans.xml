@@ -10,7 +10,6 @@
     <exclude name="com.sun.jersey.guice.**" />
     <exclude name="org.jclouds.**" />
     <exclude name="com.google.inject.**" />
-    <exclude name="com.sun.jersey.guice.**" />
   </scan>
 
 </beans>

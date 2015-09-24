@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package se.kth.servicerecommender.model;
 
 import java.io.Serializable;
@@ -26,30 +21,50 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class KaramelStatistics implements Serializable {
 
   private static final long serialVersionUID = 1L;
+
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
+
   @NotNull
   @Temporal(TemporalType.TIMESTAMP)
   private Date timeStamp;
+
   @NotNull
   @Lob
   private String statistics;
 
-  public KaramelStatistics() {
-  }
+  private String country;
+  private String city;
+  private String ip;
 
-  public KaramelStatistics(Date timeStamp, String statistics) {
-    this.timeStamp = timeStamp;
-    this.statistics = statistics;
+  public KaramelStatistics() {
   }
 
   public KaramelStatistics(Long id) {
     this.id = id;
   }
 
+  /**
+   * Used for update purposes
+   *
+   * @param id
+   * @param timeStamp
+   * @param statistics
+   */
   public KaramelStatistics(Long id, Date timeStamp, String statistics) {
     this.id = id;
+    this.timeStamp = timeStamp;
+    this.statistics = statistics;
+  }
+
+  /**
+   * Used for create purposes
+   *
+   * @param timeStamp
+   * @param statistics
+   */
+  public KaramelStatistics(Date timeStamp, String statistics) {
     this.timeStamp = timeStamp;
     this.statistics = statistics;
   }
@@ -76,6 +91,30 @@ public class KaramelStatistics implements Serializable {
 
   public void setStatistics(String statistics) {
     this.statistics = statistics;
+  }
+
+  public String getCountry() {
+    return country;
+  }
+
+  public void setCountry(String country) {
+    this.country = country;
+  }
+
+  public String getIp() {
+    return ip;
+  }
+
+  public void setIp(String ip) {
+    this.ip = ip;
+  }
+
+  public String getCity() {
+    return city;
+  }
+
+  public void setCity(String city) {
+    this.city = city;
   }
 
   @Override
