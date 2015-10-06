@@ -3,12 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package se.kth.kandy.ejb.awsec2instance;
+package se.kth.kandy.ejb.jpa;
 
+import se.kth.kandy.ejb.AbstractFacade;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import se.kth.kandy.ejb.AbstractFacade;
 import se.kth.kandy.model.AwsEc2SpotInstance;
 
 /**

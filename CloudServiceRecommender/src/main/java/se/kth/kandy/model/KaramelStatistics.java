@@ -19,7 +19,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @Entity
 @XmlRootElement
-@Table(name = "Karamel_Statistics")
+@Table(name = "karamel_statistics")
 public class KaramelStatistics implements Serializable {
 
   private static final long serialVersionUID = 1L;

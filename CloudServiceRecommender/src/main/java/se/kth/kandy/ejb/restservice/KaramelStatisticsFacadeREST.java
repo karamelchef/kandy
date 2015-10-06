@@ -2,6 +2,7 @@ package se.kth.kandy.ejb.restservice;
 
 import java.util.Date;
 import java.util.List;
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -16,16 +17,23 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import org.apache.log4j.Logger;
 import se.kth.kandy.ejb.AbstractFacade;
+import se.kth.kandy.ejb.jpa.KaramelStatisticsUtilFacade;
 import se.kth.kandy.json.geo.GeoLocation;
 import se.kth.kandy.model.KaramelStatistics;
 
 /**
+ * JaxRS rest service implemented as EJB.
+ *
+ * Process statistics received from Karamel clients.
  *
  * @author Hossein
  */
 @Stateless
 @Path("stats/cluster")
 public class KaramelStatisticsFacadeREST extends AbstractFacade<KaramelStatistics> {
+
+  @EJB
+  private KaramelStatisticsUtilFacade karamelStatisticsUtilFacade;
 
   private static final Logger logger = Logger.getLogger(KaramelStatisticsFacadeREST.class);
 
@@ -52,6 +60,7 @@ public class KaramelStatisticsFacadeREST extends AbstractFacade<KaramelStatistic
       logger.error("Problem in retriving client location for IP: " + ip);
     }
     karamelStatistics = super.create(karamelStatistics);
+    karamelStatisticsUtilFacade.parseAndStoreStatistics(karamelStatistics, false);
     return String.valueOf(karamelStatistics.getId());
   }
 
@@ -71,6 +80,7 @@ public class KaramelStatisticsFacadeREST extends AbstractFacade<KaramelStatistic
       logger.error("Problem in retriving client location for IP: " + ip);
     }
     karamelStatistics = super.edit(karamelStatistics);
+    karamelStatisticsUtilFacade.parseAndStoreStatistics(karamelStatistics, false);
     return String.valueOf(karamelStatistics.getId());
   }
 

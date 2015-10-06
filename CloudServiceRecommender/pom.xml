@@ -105,6 +105,11 @@
       <version>2.3.2</version>
       <type>jar</type>
     </dependency>
+    <dependency>
+      <groupId>se.kth.karamel</groupId>
+      <artifactId>karamel-common</artifactId>
+      <version>0.2</version>
+    </dependency>
   </dependencies>
 
   <build>

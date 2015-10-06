@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui">
+  <h:head>
+    <title>Kandy Controller</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  </h:head>
+  <h:body>
+
+    <h1>Cloud Service Recommender Control Panel</h1>
+    <hr/>
+
+    <h:form id="spot">
+      <h2>Amazon Aws-Ec2 Instances Price List Downloader</h2>
+      <p>
+        <h:commandButton value="Start Download" action="#{controlPanel.startFetchingSpotPrices}"/>
+        <h:commandButton value="Stop Download" action="#{controlPanel.stopFetchingSpotPrices}"/>
+      </p>
+      <p>
+        <h:outputLabel rendered="#{controlPanel.batchJobRunning}" value="Aws ec2 instance batch job RUNNING"/>
+        <h:outputLabel rendered="#{!controlPanel.batchJobRunning}" value="Aws ec2 instance batch job STOPED"/>
+      </p>
+      <hr/>
+      <h2>Processing Karamel Statistics</h2>
+      <p>
+        <h:commandButton value="Start processing" action="#{controlPanel.parseStatistics()}"/>
+      </p>
+      <hr/>
+      <p>
+        <h:outputText id="out" styleClass="ui-widget display"/>
+      </p>
+
+    </h:form>
+
+    <p:socket onMessage="handleMessage" channel="/notify"/>
+
+    <script type="text/javascript">
+      function handleMessage(message) {
+        $('.display').html(message);
+        console.log(message);
+      }
+    </script>
+
+  </h:body>
+</html>

@@ -15,25 +15,25 @@ import se.kth.kandy.batch.executor.AwsEc2InstanceJob;
 import static se.kth.kandy.batch.executor.AwsEc2InstanceJob.AWSEC2_INSTANCE_JOB;
 
 /**
- * Enterprise java bean (Session bean). Provides business logic to start/stop batch job to fetch spot instances prices
- * from amazon periodically.
+ * Enterprise java bean (Session bean). Provides business logic to start/stop batch job to fetch aws ec2 instances
+ * prices from amazon periodically.
  *
  * @author Hossein
  */
 @Stateless
-public class SpotInstanceScheduledBatchFacade {
+public class AwsEc2PriceScheduledBatchFacade {
 
   /**
    * Delay between running the jobs
    */
   private static final int mDelay = 24;
-  private static final Logger logger = Logger.getLogger(SpotInstanceScheduledBatchFacade.class);
+  private static final Logger logger = Logger.getLogger(AwsEc2PriceScheduledBatchFacade.class);
 
   @Resource
   private ManagedScheduledExecutorService mExecutor;
   private ScheduledFuture<?> scheduledFuture;
 
-  public SpotInstanceScheduledBatchFacade() {
+  public AwsEc2PriceScheduledBatchFacade() {
   }
 
   public void runJob() {

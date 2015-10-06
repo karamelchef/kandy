@@ -19,7 +19,7 @@ import javax.persistence.Table;
  * @author Hossein
  */
 @Entity
-@Table(name = "AwsEc2_Spot_Instance")
+@Table(name = "awsec2_spot_instance")
 public class AwsEc2SpotInstance implements Serializable {
 
   private static final long serialVersionUID = 1L;

@@ -11,7 +11,7 @@ import javax.batch.api.chunk.AbstractItemWriter;
 import javax.ejb.EJB;
 import javax.inject.Named;
 import org.apache.log4j.Logger;
-import se.kth.kandy.ejb.awsec2instance.AwsEc2SpotInstanceFacade;
+import se.kth.kandy.ejb.jpa.AwsEc2SpotInstanceFacade;
 import se.kth.kandy.ejb.notify.ServerPushFacade;
 import se.kth.kandy.model.AwsEc2SpotInstance;
 
