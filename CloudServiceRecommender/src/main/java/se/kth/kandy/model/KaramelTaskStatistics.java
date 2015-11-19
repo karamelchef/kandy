@@ -6,6 +6,7 @@ import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.MapsId;
+import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
@@ -15,8 +16,11 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "karamel_task_statistics")
-@NamedQuery(name = "KaramelTaskStatistics.maxID",
-    query = "SELECT max(k.id.id) FROM KaramelTaskStatistics k WHERE k.id.karamelStatisticsId = :karamelStatisticsID")
+@NamedQueries({
+  @NamedQuery(name = "KaramelTaskStatistics.maxID",
+      query = "SELECT max(k.id.id) FROM KaramelTaskStatistics k WHERE k.id.karamelStatisticsId = :karamelStatisticsID"),
+  @NamedQuery(name = "KaramelTaskStatistics.averageTaskTime",
+      query = "SELECT AVG(k.duration) FROM KaramelTaskStatistics k WHERE k.taskId = :taskId AND k.status = :status")})
 public class KaramelTaskStatistics implements Serializable {
 
   private static final long serialVersionUID = 1L;

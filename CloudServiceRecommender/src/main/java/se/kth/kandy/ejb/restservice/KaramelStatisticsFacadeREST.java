@@ -29,7 +29,7 @@ import se.kth.kandy.model.KaramelStatistics;
  * @author Hossein
  */
 @Stateless
-@Path("stats/cluster")
+@Path("cluster/stats")
 public class KaramelStatisticsFacadeREST extends AbstractFacade<KaramelStatistics> {
 
   @EJB

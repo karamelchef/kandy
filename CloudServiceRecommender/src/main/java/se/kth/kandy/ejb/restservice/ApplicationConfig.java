@@ -28,6 +28,7 @@ public class ApplicationConfig extends Application {
    */
   private void addRestResourceClasses(
       Set<Class<?>> resources) {
+    resources.add(se.kth.kandy.ejb.restservice.ClusterCostFacadeREST.class);
     resources.add(se.kth.kandy.ejb.restservice.KaramelStatisticsFacadeREST.class);
   }
 

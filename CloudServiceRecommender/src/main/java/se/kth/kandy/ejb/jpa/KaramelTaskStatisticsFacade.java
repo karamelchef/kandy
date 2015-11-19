@@ -33,4 +33,31 @@ public class KaramelTaskStatisticsFacade extends AbstractFacade<KaramelTaskStati
     return (Long) query.getSingleResult(); // if there would be no result it will return 0
   }
 
+  /**
+   * Average time takes for running the task based on previously run tasks in database.
+   *
+   * Will return 0 if no history for similar task found in database
+   *
+   * @param taskId
+   * @return
+   */
+  public long averageTaskTime(String taskId) {
+    //TODO: Query can become more specific
+    Query query = getEntityManager().createNamedQuery("KaramelTaskStatistics.averageTaskTime");
+    query.setParameter("taskId", taskId);
+    query.setParameter("status", "DONE");
+    if (query.getSingleResult() == null) {
+      return 0;
+    }
+    long duration;
+    try {
+      Double temp = (double) query.getSingleResult();
+      duration = temp.longValue();
+    } catch (ClassCastException e) {
+      // for testing purpose and OpenEjb
+      duration = (long) query.getSingleResult();
+    }
+    return duration;
+  }
+
 }

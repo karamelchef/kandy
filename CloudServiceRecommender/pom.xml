@@ -31,6 +31,19 @@
 
   <dependencies>
     <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+      <version>5.1.37</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.tomee</groupId>
+      <artifactId>openejb-core</artifactId>
+      <version>7.0.0-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
       <groupId>org.eclipse.persistence</groupId>
       <artifactId>eclipselink</artifactId>
       <version>2.5.2</version>
@@ -42,6 +55,26 @@
       <version>2.5.2</version>
       <scope>provided</scope>
     </dependency>
+
+    <dependency>
+      <groupId>org.testng</groupId>
+      <artifactId>testng</artifactId>
+      <version>6.8.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-module-testng</artifactId>
+      <version>1.6.3</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-api-mockito</artifactId>
+      <version>1.6.3</version>
+      <scope>test</scope>
+    </dependency>
+
     <dependency>
       <groupId>javax</groupId>
       <artifactId>javaee-web-api</artifactId>
@@ -110,10 +143,30 @@
       <artifactId>karamel-common</artifactId>
       <version>0.2</version>
     </dependency>
+    <dependency>
+      <groupId>se.kth</groupId>
+      <artifactId>karamel-core</artifactId>
+      <version>0.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.yaml</groupId>
+      <artifactId>snakeyaml</artifactId>
+      <version>1.11</version>
+    </dependency>
   </dependencies>
 
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.19</version>
+        <configuration>
+          <!-- Sets the VM argument line used when unit tests are run. Also Set argument needed for power mock -->
+          <argLine>-XX:-UseSplitVerifier</argLine>
+        </configuration>
+      </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
@@ -175,49 +228,11 @@
 
   <repositories>
     <repository>
-      <id>sics-release</id>
-      <name>SICS Release Repository</name>
-      <url>http://kompics.sics.se/maven/repository</url>
-      <releases>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>sics-snapshot</id>
-      <name>SICS Snapshot Repository</name>
-      <url>http://kompics.sics.se/maven/snapshotrepository</url>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-      </snapshots>
-    </repository>
-    <repository>
       <id>prime-repo</id>
       <name>PrimeFaces Maven Repository</name>
       <url>http://repository.primefaces.org</url>
       <layout>default</layout>
     </repository>
   </repositories>
-
-  <distributionManagement>
-    <repository>
-      <id>sics-release-repository</id>
-      <name>SICS Repository</name>
-      <url>scpexe://kompics.i.sics.se/home/maven/repository</url>
-    </repository>
-    <snapshotRepository>
-      <id>sics-snapshot-repository</id>
-      <name>SICS Snapshot Repository</name>
-      <url>scpexe://kompics.i.sics.se/home/maven/snapshotrepository</url>
-    </snapshotRepository>
-    <site>
-      <id>kompics-site</id>
-      <url>scpexe://kompics.i.sics.se/var/www/kompics/report/trunk</url>
-    </site>
-    <downloadUrl>http://kompics.i.sics.se/maven/repository</downloadUrl>
-  </distributionManagement>
 
 </project>
