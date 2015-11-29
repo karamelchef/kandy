@@ -20,7 +20,8 @@ import javax.persistence.Table;
   @NamedQuery(name = "KaramelTaskStatistics.maxID",
       query = "SELECT max(k.id.id) FROM KaramelTaskStatistics k WHERE k.id.karamelStatisticsId = :karamelStatisticsID"),
   @NamedQuery(name = "KaramelTaskStatistics.averageTaskTime",
-      query = "SELECT AVG(k.duration) FROM KaramelTaskStatistics k WHERE k.taskId = :taskId AND k.status = :status")})
+      query = "SELECT AVG(k.duration) FROM KaramelTaskStatistics k WHERE k.taskId = :taskId AND k.status = :status "
+      + "AND k.machineType LIKE :machineType")})
 public class KaramelTaskStatistics implements Serializable {
 
   private static final long serialVersionUID = 1L;

@@ -39,13 +39,15 @@ public class KaramelTaskStatisticsFacade extends AbstractFacade<KaramelTaskStati
    * Will return 0 if no history for similar task found in database
    *
    * @param taskId
+   * @param provider ec2, gce or baremetal
    * @return
    */
-  public long averageTaskTime(String taskId) {
+  public long averageTaskTime(String taskId, String provider) {
     //TODO: Query can become more specific
     Query query = getEntityManager().createNamedQuery("KaramelTaskStatistics.averageTaskTime");
     query.setParameter("taskId", taskId);
     query.setParameter("status", "DONE");
+    query.setParameter("machineType", provider + "%");
     if (query.getSingleResult() == null) {
       return 0;
     }

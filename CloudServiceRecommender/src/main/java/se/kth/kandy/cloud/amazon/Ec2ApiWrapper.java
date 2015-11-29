@@ -49,4 +49,8 @@ public class Ec2ApiWrapper {
       DescribeSpotPriceHistoryOptions options) {
     return context.getSpotInstanceApi().describeSpotPriceHistoryInRegion(region, options);
   }
+
+  public Set<String> getConfiguredRegions() {
+    return context.getConfiguredRegions();
+  }
 }

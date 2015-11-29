@@ -13,7 +13,7 @@ import se.kth.karamel.common.util.IoUtils;
 /**
  * Integration test. Reads real data from database to calculate time and price for the specified cluster.
  *
- * In order to perform testings, starts embedded GlassFish
+ * In order to perform testings, starts embedded container.
  *
  * @author Hossein
  */
@@ -24,15 +24,21 @@ public class ClusterCostFacadeRESTTest {
 
   @Test
   public void testCalculateTime() {
-    String result = null;
     try {
-      String yaml = IoUtils.readContentFromClasspath("se/kth/kandy/yaml/flink-on-hdfs-3node-aws-m3-med.yml");
-      result = clusterCostFacadeREST.calculateTime(yaml);
+      // ec2 spot prices
+      String yaml = IoUtils.readContentFromClasspath("se/kth/kandy/yaml/saasfeeStandaloneEc2Variantcall.yml");
+      assertNotNull(clusterCostFacadeREST.calculateCost(yaml));
+      //ec2 ondemand prices
+      yaml = IoUtils.readContentFromClasspath("se/kth/kandy/yaml/flink-on-hdfs-3node-aws-m3-med.yml");
+      assertNotNull(clusterCostFacadeREST.calculateCost(yaml));
+      // baremetal
+      yaml = IoUtils.readContentFromClasspath("se/kth/kandy/yaml/StandaloneFlinkWithHDFSBareMetal.yml");
+      assertNotNull(clusterCostFacadeREST.calculateCost(yaml));
+
     } catch (KaramelException | IOException ex) {
       logger.error(ex.getMessage());
       fail("Could not caluclate time for cluster");
     }
-    assertNotNull(result);
   }
 
   @BeforeClass

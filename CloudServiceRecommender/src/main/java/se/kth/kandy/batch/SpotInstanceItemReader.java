@@ -29,7 +29,8 @@ public class SpotInstanceItemReader extends AbstractItemReader {
 
   private static final Logger logger = Logger.getLogger(SpotInstanceItemReader.class);
 
-  private Iterator<Spot> mSpots;
+  private Iterator<String> mRegions;
+  private Ec2ApiWrapper mEc2ApiWrapper;
 
   public SpotInstanceItemReader() {
   }
@@ -51,23 +52,24 @@ public class SpotInstanceItemReader extends AbstractItemReader {
     }
     Ec2Credentials credentials = credentialsHandling.loadEc2Credentials();
 
-    Ec2ApiWrapper ec2ApiWrapper = new Ec2ApiWrapper(Ec2ApiWrapper.validateCredentials(credentials), sshKeyPair);
-    long timeStamp = System.currentTimeMillis();
-    Date from = new Date(timeStamp - 3600000); // 1 hour ago
-    Date to = new Date(timeStamp);
-    //Only approximately latest 960 records will be fetched
-    Set<Spot> spots = ec2ApiWrapper.getSpotPriceHistory(null, DescribeSpotPriceHistoryOptions.Builder
-        .from(from)
-        .to(to));
-    mSpots = spots.iterator();
-    String log = spots.size() + " Aws Spot instance prices in the past 1 hour, fetched. ";
-    logger.info(log);
+    mEc2ApiWrapper = new Ec2ApiWrapper(Ec2ApiWrapper.validateCredentials(credentials), sshKeyPair);
+
+    mRegions = mEc2ApiWrapper.getConfiguredRegions().iterator();
+
   }
 
   @Override
-  public Spot readItem() throws Exception {
-    if (mSpots.hasNext()) {
-      return mSpots.next();
+  public Set<Spot> readItem() throws Exception {
+    if (mRegions.hasNext()) {
+      String region = mRegions.next();
+      long timeStamp = System.currentTimeMillis();
+      Date from = new Date(timeStamp - 3600000); // 1 hour
+      Date to = new Date(timeStamp);
+      //Only approximately latest 960 records will be fetched
+      Set<Spot> spots = mEc2ApiWrapper.getSpotPriceHistory(region, DescribeSpotPriceHistoryOptions.Builder
+          .from(from).to(to));
+      logger.info(spots.size() + " Aws Spot instance prices, fetched for region: " + region);
+      return spots;
     }
     return null;
   }

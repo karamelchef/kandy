@@ -7,6 +7,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import org.apache.log4j.Logger;
+import se.kth.kandy.json.cost.ClusterTimePrice;
 import se.kth.karamel.common.exception.KaramelException;
 
 /**
@@ -17,7 +18,7 @@ import se.kth.karamel.common.exception.KaramelException;
  * @author Hossein
  */
 @Stateless
-@Path("cluster/cost")
+@Path("cluster")
 public class ClusterCostFacadeREST {
 
   @EJB
@@ -26,21 +27,10 @@ public class ClusterCostFacadeREST {
   private static final Logger logger = Logger.getLogger(ClusterCostFacadeREST.class);
 
   @POST
-  @Path("time")
+  @Path("cost")
   @Consumes({"text/plain"})
-  @Produces("text/plain")
-  public String calculateTime(String yaml) throws KaramelException {
-    long clusterTime = clusterCost.getClusterTime(yaml);
-    logger.debug("Cluster time in milisecond: " + clusterTime);
-    return String.valueOf(clusterTime);
+  @Produces({"application/json"})
+  public ClusterTimePrice calculateCost(String yaml) throws KaramelException {
+    return clusterCost.getClusterCost(yaml);
   }
-
-  @POST
-  @Path("price")
-  @Consumes({"text/plain"})
-  @Produces("text/plain")
-  public String calculatePrice(String yaml) {
-    return null;
-  }
-
 }

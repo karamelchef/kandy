@@ -6,20 +6,29 @@
 package se.kth.kandy.model;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
 /**
  * Entity class used to store details of the spot instances fetched from amazon
  *
+ * Prices are in $ per hour
+ *
  * @author Hossein
  */
 @Entity
 @Table(name = "awsec2_spot_instance")
+@NamedQuery(name = "AwsEc2SpotInstance.priceList",
+    query = "SELECT k.price FROM AwsEc2SpotInstance k WHERE k.region = :region AND "
+    + "k.instanceType = :instanceType AND k.productDescription = :productDescription "
+    + "ORDER BY k.timeStamp DESC")
 public class AwsEc2SpotInstance implements Serializable {
 
   private static final long serialVersionUID = 1L;
@@ -30,11 +39,12 @@ public class AwsEc2SpotInstance implements Serializable {
   private String region;
   private String instanceType;
   private String productDescription;
-  private float price;
+  @Column(precision = 10, scale = 4)
+  private BigDecimal price;
   private Timestamp timeStamp;
   private String availabilityZone;
 
-  public AwsEc2SpotInstance(String region, String instanceType, String productDescription, float price,
+  public AwsEc2SpotInstance(String region, String instanceType, String productDescription, BigDecimal price,
       Timestamp timeStamp, String availabilityZone) {
     this.region = region;
     this.instanceType = instanceType;
@@ -79,11 +89,11 @@ public class AwsEc2SpotInstance implements Serializable {
     this.productDescription = productDescription;
   }
 
-  public float getPrice() {
+  public BigDecimal getPrice() {
     return price;
   }
 
-  public void setPrice(float price) {
+  public void setPrice(BigDecimal price) {
     this.price = price;
   }
 

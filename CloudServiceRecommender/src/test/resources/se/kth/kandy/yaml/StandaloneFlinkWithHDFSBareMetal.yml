@@ -1,0 +1,75 @@
+name: StandaloneFlinkWithHDFSBareMetal
+baremetal:
+   ips: [
+     ]
+   sudoPassword: ''
+   username: vagrant
+cookbooks:
+   hadoop:
+     branch: master
+     github: hopshadoop/apache-hadoop-chef
+   flink:
+     branch: master
+     github: hopshadoop/flink-chef
+attrs:
+   hadoop:
+     mr:
+       user: vagrant
+     yarn:
+       user: vagrant
+   hdfs:
+     user: vagrant
+   flink:
+     jobmanager:
+       heap_mbs: '1024'
+     user: vagrant
+     taskmanager:
+       heap_mbs: '1024'
+groups:
+   datanodes:
+     size: 1
+     baremetal:
+       ips:
+       - 172.28.128.6
+       sudoPassword: ''
+     attrs:
+       hadoop:
+         mr:
+           user: vagrant
+         yarn:
+           user: vagrant
+       hdfs:
+         user: vagrant
+       flink:
+         jobmanager:
+           heap_mbs: '1024'
+         user: vagrant
+         taskmanager:
+           heap_mbs: '1024'
+     recipes:
+     - hadoop::dn
+     - flink::taskmanager
+   namenodes:
+     size: 1
+     baremetal:
+       ips:
+       - 172.28.128.5
+       sudoPassword: ''
+     attrs:
+       hadoop:
+         mr:
+           user: vagrant
+         yarn:
+           user: vagrant
+       hdfs:
+         user: vagrant
+       flink:
+         jobmanager:
+           heap_mbs: '1024'
+         user: vagrant
+         taskmanager:
+           heap_mbs: '1024'
+     recipes:
+     - flink::jobmanager
+     - hadoop::nn
+ 

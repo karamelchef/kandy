@@ -6,6 +6,5 @@ pom.xml.next
 release.properties
 dependency-reduced-pom.xml
 buildNumber.properties
-/ServiceRecommander/nbproject/private/
-/ServiceRecommander/ServiceRecommander-war/nbproject/private/
-/ServiceRecommander/ServiceRecommander-ejb/nbproject/private/
+CloudServiceRecommender/nbactions.xml
+

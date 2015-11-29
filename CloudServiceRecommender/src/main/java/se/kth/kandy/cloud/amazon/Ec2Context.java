@@ -8,6 +8,7 @@ package se.kth.kandy.cloud.amazon;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Module;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.jclouds.Constants;
 import static org.jclouds.Constants.PROPERTY_CONNECTION_TIMEOUT;
@@ -43,6 +44,7 @@ public class Ec2Context {
   private final AWSKeyPairApi keypairApi;
   private final SpotInstanceApi spotInstanceApi;
   private final AWSEC2Api aWSEC2Api;
+  private final Set<String> configuredRegions;
 
   public Ec2Context(Ec2Credentials credentials) {
     this.credentials = credentials;
@@ -69,21 +71,15 @@ public class Ec2Context {
     this.computeService = (AWSEC2ComputeService) context.getComputeService();
     this.ec2api = computeService.getContext().unwrapApi(EC2Api.class);
     this.aWSEC2Api = computeService.getContext().unwrapApi(AWSEC2Api.class);
+
     this.securityGroupApi = ec2api.getSecurityGroupApi().get();
     this.keypairApi = (AWSKeyPairApi) ec2api.getKeyPairApi().get();
     this.spotInstanceApi = (SpotInstanceApi) aWSEC2Api.getSpotInstanceApi().get();
+    this.configuredRegions = aWSEC2Api.getConfiguredRegions();
   }
 
   public Ec2Credentials getCredentials() {
     return credentials;
-  }
-
-  public AWSEC2ComputeService getComputeService() {
-    return computeService;
-  }
-
-  public EC2Api getEc2api() {
-    return ec2api;
   }
 
   public AWSKeyPairApi getKeypairApi() {
@@ -98,7 +94,7 @@ public class Ec2Context {
     return spotInstanceApi;
   }
 
-  public AWSEC2Api getAWSEC2Api() {
-    return aWSEC2Api;
+  public Set<String> getConfiguredRegions() {
+    return configuredRegions;
   }
 }

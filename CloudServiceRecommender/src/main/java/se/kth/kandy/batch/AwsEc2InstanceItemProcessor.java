@@ -8,6 +8,7 @@ package se.kth.kandy.batch;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import javax.batch.api.chunk.ItemProcessor;
@@ -71,7 +72,7 @@ public class AwsEc2InstanceItemProcessor implements ItemProcessor {
 
             AwsEc2InstancePrice awsEc2InstancePrice = new AwsEc2InstancePrice(new AwsEc2InstancePriceID(
                 region.getRegion(), awsEc2InstancesJsonPerOS.getOsType(), reservedTerm.getOnDemandHourly().get(0).
-                getPurchaseOption()), Float.valueOf(reservedTerm.getOnDemandHourly().get(0).getPrices().getUSD()),
+                getPurchaseOption()), new BigDecimal(reservedTerm.getOnDemandHourly().get(0).getPrices().getUSD()),
                 new AwsEc2Instance(reservedInstanceType.getType()));
 
             if (!instancesList.contains(awsEc2InstancePrice)) {
@@ -83,12 +84,12 @@ public class AwsEc2InstanceItemProcessor implements ItemProcessor {
 
               awsEc2InstancePrice = new AwsEc2InstancePrice(new AwsEc2InstancePriceID(region.getRegion(),
                   awsEc2InstancesJsonPerOS.getOsType(), reservedTerm.getTerm() + "_" + reservedPurchaseOption.
-                  getPurchaseOption()), 0, new AwsEc2Instance(reservedInstanceType.getType()));
+                  getPurchaseOption()), BigDecimal.ZERO, new AwsEc2Instance(reservedInstanceType.getType()));
 
               for (int m = 0; m < reservedPurchaseOption.getValueColumns().size(); m++) {
                 String purchaseType = reservedPurchaseOption.getValueColumns().get(m).getName();
                 if (purchaseType.equalsIgnoreCase("effectiveHourly")) {
-                  awsEc2InstancePrice.setPrice(Float.valueOf(
+                  awsEc2InstancePrice.setPrice(new BigDecimal(
                       reservedPurchaseOption.getValueColumns().get(m).getPrices().getUSD()));
                 }
               }

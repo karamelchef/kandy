@@ -30,7 +30,10 @@ public class SpotInstanceItemWriter extends AbstractItemWriter {
 
   @Override
   public void writeItems(List<Object> items) throws Exception {
-    awsEc2SpotInstanceFacade.create((AwsEc2SpotInstance) items.get(0));
+    List<AwsEc2SpotInstance> instanceList = (List<AwsEc2SpotInstance>) items.get(0);
+    for (AwsEc2SpotInstance instance : instanceList) {
+      awsEc2SpotInstanceFacade.create(instance);
+    }
   }
 
   @Override

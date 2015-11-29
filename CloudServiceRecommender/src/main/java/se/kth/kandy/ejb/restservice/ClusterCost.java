@@ -2,6 +2,7 @@ package se.kth.kandy.ejb.restservice;
 
 import com.google.gson.JsonObject;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -10,7 +11,10 @@ import java.util.Queue;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import org.apache.log4j.Logger;
+import se.kth.kandy.ejb.jpa.AwsEc2InstancePriceFacade;
+import se.kth.kandy.ejb.jpa.AwsEc2SpotInstanceFacade;
 import se.kth.kandy.ejb.jpa.KaramelTaskStatisticsFacade;
+import se.kth.kandy.json.cost.ClusterTimePrice;
 import se.kth.karamel.backend.ClusterDefinitionService;
 import se.kth.karamel.backend.converter.ChefJsonGenerator;
 import se.kth.karamel.backend.dag.Dag;
@@ -26,27 +30,47 @@ import se.kth.karamel.common.stats.ClusterStats;
 /**
  * Calculates expected time and price for provisioning an specified cluster in yaml format
  *
+ * 1. The algorithm first simulates the running environment and machine queues involved in running the cluster.
+ *
+ * 2.Instead of actually running the cluster on machines it fetch the history of previously run tasks from the database
+ * based on provider type EC2, GCE or BAREMETAL.
+ *
+ * 3. Starts the DAG and calculate the total time
+ *
+ * 4. For total price fetch machine prices from the database, sum the prices of machines then times previously
+ * calculated duration round up to hours.
+ *
  * @author Hossein
  */
 @Stateless
 public class ClusterCost {
 
   @EJB
+  protected AwsEc2SpotInstanceFacade awsEc2SpotInstanceFacade;
+  @EJB
+  protected AwsEc2InstancePriceFacade awsEc2InstancePriceFacade;
+  @EJB
   protected KaramelTaskStatisticsFacade karamelTaskStatisticsFacade;
 
   private static final Logger logger = Logger.getLogger(ClusterCost.class);
+
   /**
-   * Simulate all available machines in an experiments
+   * Simulates all available machines for the cluster
    */
   private Machines machines;
 
   /**
    * Represents a queue for a single machine in which tasks should be stored and then execute
    */
-  private class MachineQueue {
+  protected class MachineQueue {
 
     private Queue<Task> queue = new LinkedList<>();
     private long time = 0;
+    private String machineType = null;
+
+    protected MachineQueue(String machineType) {
+      this.machineType = machineType;
+    }
 
     public boolean isEmpty() {
       return queue.isEmpty();
@@ -88,12 +112,12 @@ public class ClusterCost {
   /**
    * Represents all the available machines in an experiment.
    */
-  private class Machines {
+  protected class Machines {
 
     private long globalDuration = 0;
     private Map<String, MachineQueue> machineQueues = new HashMap<>();
 
-    private Machines() {
+    protected Machines() {
     }
 
     public boolean addTask(String machineId, Task task) {
@@ -101,7 +125,7 @@ public class ClusterCost {
       if (machineQueues.containsKey(machineId)) {
         machineQueue = machineQueues.get(machineId);
       } else {
-        machineQueue = new MachineQueue();
+        machineQueue = new MachineQueue(task.getMachine().getMachineType());
       }
       machineQueue.addTask(task);
       machineQueues.put(machineId, machineQueue);
@@ -144,16 +168,17 @@ public class ClusterCost {
   /**
    * Initialize the machines and implements task submitter
    *
+   * @param machines
    * @return
    */
-  public TaskSubmitter getTaskSubmitter() {
-    machines = new Machines();
+  protected TaskSubmitter getTaskSubmitter() {
     TaskSubmitter dummyTaskSubmitter = new TaskSubmitter() {
 
       @Override
       public void submitTask(Task task) throws KaramelException {
-        Long taskDuration = karamelTaskStatisticsFacade.averageTaskTime(task.getId());
-        logger.debug(" submit : " + task.getName() + " on " + task.getMachineId() + " Type " + task.getMachine().
+        String provider = task.getMachine().getMachineType().split("/")[0];
+        Long taskDuration = karamelTaskStatisticsFacade.averageTaskTime(task.getId(), provider);
+        logger.debug(" submit : " + task.getId() + " on " + task.getMachineId() + " Type " + task.getMachine().
             getMachineType() + " Duration: " + taskDuration);
         //TODO: query the task duration from database by taskId and machineID
         task.setDuration(taskDuration);
@@ -168,15 +193,16 @@ public class ClusterCost {
   }
 
   /**
-   * Time takes for the whole cluster to run.
+   * Time and price takes for the whole cluster to run.
    *
-   * If there would be no info regarding a task in database whole calculation will return 0
+   * If there would be no info regarding a task time in database whole calculation will return 0
    *
    * @param clusterYaml
-   * @return long duration
+   * @return
    * @throws KaramelException
    */
-  public long getClusterTime(String clusterYaml) throws KaramelException {
+  public ClusterTimePrice getClusterCost(String clusterYaml) throws KaramelException {
+    machines = new Machines();
     JsonCluster jsonCluster = ClusterDefinitionService.yamlToJsonObject(clusterYaml);
     ClusterRuntime dummyClusterRuntime = MockingUtil.dummyRuntime(jsonCluster);
     Map<String, JsonObject> chefJsons = ChefJsonGenerator.generateClusterChefJsons(jsonCluster, dummyClusterRuntime);
@@ -193,17 +219,42 @@ public class ClusterCost {
       Task task = machines.removeSmallestTask();
       if (task.getDuration() == 0) { // if there would be no time estimate for a task
         //TODO: logic can be changed
-        return 0;
+        machines.globalDuration = 0;
+        break;
       }
-      logger.debug(" succeed : " + task.getName() + " on " + task.getMachineId() + " Type " + task.getMachine().
+      logger.debug(" succeed : " + task.getId() + " on " + task.getMachineId() + " Type " + task.getMachine().
           getMachineType() + " Duration: " + task.getDuration());
       task.succeed();
     }
 
-    return machines.getGlobalDuration();
+    // Calculate cost of all machines regarding the total time they are running
+    BigDecimal totalCost = BigDecimal.ZERO;
+    for (MachineQueue machineQueue : machines.machineQueues.values()) {
+      String[] machineType = machineQueue.machineType.split("/");
+      if (machineType[0].equalsIgnoreCase("ec2")) {
+        // run time is rounded up in hours, regarding amazon ec2 pricing policy
+        BigDecimal runTimeHours = new BigDecimal((double) machines.getGlobalDuration() / 3600000).setScale(0,
+            RoundingMode.CEILING);
+        BigDecimal price = BigDecimal.ZERO;
+        //TODO: os and purchase option are assumed default, need to specify them from ami
+        if (machineType[5].equalsIgnoreCase("null")) { // OnDemand or Reserved Instances
+          price = awsEc2InstancePriceFacade.getPrice(machineType[1], machineType[2], "Linux", "ODHourly");
+        } else { // Spot instances
+          price = awsEc2SpotInstanceFacade.getAveragePrice(machineType[1], machineType[2], "Linux/UNIX");
+        }
+        totalCost = totalCost.add(price.multiply(runTimeHours));
+
+      } else {
+        //TODO: calculate price for Baremetal and GCE, for now it would be just zero
+        totalCost = BigDecimal.ZERO;
+        break;
+      }
+    }
+    ClusterTimePrice clusterTimePrice = new ClusterTimePrice(machines.getGlobalDuration(), totalCost.setScale(4,
+        RoundingMode.HALF_UP));
+    logger.debug("Cluster run time (ms): " + clusterTimePrice.getDuration());
+    logger.debug("Cluster price ($/hour): " + clusterTimePrice.getPrice());
+    return clusterTimePrice;
   }
 
-  public BigDecimal getClusterPrice(String clusterYaml) {
-    return new BigDecimal(0);
-  }
 }

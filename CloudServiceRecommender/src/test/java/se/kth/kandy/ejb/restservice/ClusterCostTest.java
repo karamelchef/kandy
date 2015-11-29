@@ -1,6 +1,7 @@
 package se.kth.kandy.ejb.restservice;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -13,9 +14,12 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
-import org.testng.Assert;
+import static org.testng.Assert.assertEquals;
 import org.testng.annotations.Test;
+import se.kth.kandy.ejb.jpa.AwsEc2InstancePriceFacade;
+import se.kth.kandy.ejb.jpa.AwsEc2SpotInstanceFacade;
 import se.kth.kandy.ejb.jpa.KaramelTaskStatisticsFacade;
+import se.kth.kandy.json.cost.ClusterTimePrice;
 import se.kth.karamel.backend.ClusterDefinitionService;
 import se.kth.karamel.backend.dag.Dag;
 import se.kth.karamel.backend.machines.TaskSubmitter;
@@ -43,46 +47,69 @@ public class ClusterCostTest extends PowerMockTestCase {
   private static final Logger logger = Logger.getLogger(ClusterCostTest.class);
 
   @Test
-  public void testGetClusterTime() throws DagConstructionException, KaramelException {
+  public void testGetClusterCostForEc2() throws DagConstructionException, KaramelException {
+
     ClusterCost clusterCost = new ClusterCost();
+
     KaramelTaskStatisticsFacade karamelTaskStatisticsFacadeMocked = Mockito.mock(KaramelTaskStatisticsFacade.class);
+    AwsEc2InstancePriceFacade awsEc2InstancePriceFacadeMocked = Mockito.mock(AwsEc2InstancePriceFacade.class);
+    AwsEc2SpotInstanceFacade awsEc2SpotInstanceFacadeMocked = Mockito.mock(AwsEc2SpotInstanceFacade.class);
 
     // mock the task times retrieved from database
-    when(karamelTaskStatisticsFacadeMocked.averageTaskTime("task1")).thenReturn(new Long(50));
-    when(karamelTaskStatisticsFacadeMocked.averageTaskTime("task2")).thenReturn(new Long(20));
-    when(karamelTaskStatisticsFacadeMocked.averageTaskTime("task3")).thenReturn(new Long(30));
-    when(karamelTaskStatisticsFacadeMocked.averageTaskTime("task4")).thenReturn(new Long(30));
-    when(karamelTaskStatisticsFacadeMocked.averageTaskTime("task5")).thenReturn(new Long(40));
+    when(karamelTaskStatisticsFacadeMocked.averageTaskTime("task1", "ec2")).thenReturn(new Long(50000));
+    when(karamelTaskStatisticsFacadeMocked.averageTaskTime("task2", "ec2")).thenReturn(new Long(20000));
+    when(karamelTaskStatisticsFacadeMocked.averageTaskTime("task3", "ec2")).thenReturn(new Long(30000));
+    when(karamelTaskStatisticsFacadeMocked.averageTaskTime("task4", "ec2")).thenReturn(new Long(30000));
+    when(karamelTaskStatisticsFacadeMocked.averageTaskTime("task5", "ec2")).thenReturn(new Long(40000));
+
+    String machineTypeOnDemand = "ec2/eu-west-1/m3.large/ami-0307ce74/null/null";
+    when(awsEc2InstancePriceFacadeMocked.getPrice("eu-west-1", "m3.large", "Linux", "ODHourly")).thenReturn(
+        new BigDecimal("0.1460"));
+
+    String machineTypeSpot = "ec2/eu-west-1/m3.large/ami-234ecc54/null/0.1";
+    when(awsEc2SpotInstanceFacadeMocked.getAveragePrice("eu-west-1", "m3.large", "Linux/UNIX")).thenReturn(
+        new BigDecimal("0.02071667"));
 
     clusterCost.karamelTaskStatisticsFacade = karamelTaskStatisticsFacadeMocked;
+    clusterCost.awsEc2InstancePriceFacade = awsEc2InstancePriceFacadeMocked;
+    clusterCost.awsEc2SpotInstanceFacade = awsEc2SpotInstanceFacadeMocked;
+
+    PowerMockito.mockStatic(ClusterDefinitionService.class);
+    when(ClusterDefinitionService.yamlToJsonObject(Mockito.anyString())).thenReturn(new JsonCluster());
+
     TaskSubmitter taskSubmitter = clusterCost.getTaskSubmitter();
+    PowerMockito.mockStatic(DagBuilder.class);
+    // test time and price for cluster running on OnDemand machine type
+    Dag dagOnDemand = getDummyDag(machineTypeOnDemand, taskSubmitter);
+    when(DagBuilder.getInstallationDag(any(JsonCluster.class), any(ClusterRuntime.class), any(ClusterStats.class), any(
+        TaskSubmitter.class), any(Map.class))).thenReturn(dagOnDemand);
+    ClusterTimePrice clusterTimePrice = clusterCost.getClusterCost(Mockito.anyString());
+    assertEquals(clusterTimePrice.getDuration(), 120000, "Calculated running time does not match"); //2 minute
+    assertEquals(clusterTimePrice.getPrice(), new BigDecimal("0.2920"), "Calculated OnDemand price does not match");// in dollar
 
+    // test time and price for cluster running on spot machine type
+    Dag dagSpot = getDummyDag(machineTypeSpot, taskSubmitter);
+    when(DagBuilder.getInstallationDag(any(JsonCluster.class), any(ClusterRuntime.class), any(ClusterStats.class), any(
+        TaskSubmitter.class), any(Map.class))).thenReturn(dagSpot);
+    clusterTimePrice = clusterCost.getClusterCost(Mockito.anyString());
+    assertEquals(clusterTimePrice.getDuration(), 120000, "Calculated running time does not match"); //2 minute
+    assertEquals(clusterTimePrice.getPrice(), new BigDecimal("0.0414"), "Calculated spot sprice does not match");// in dollar
+
+  }
+
+  private Dag getDummyDag(String machineType, TaskSubmitter taskSubmitter) throws DagConstructionException {
     Dag dag = new Dag();
-
     // builds the dependancy graph
     dag.addNode("task4");
     dag.addDependency("task1", "task3");
     dag.addDependency("task2", "task5");
-
     //add tasks
-    dag.addTask(new DummyTask("task1", "nn1", taskSubmitter));
-    dag.addTask(new DummyTask("task2", "nn2", taskSubmitter));
-    dag.addTask(new DummyTask("task3", "nn2", taskSubmitter));
-    dag.addTask(new DummyTask("task4", "nn1", taskSubmitter));
-    dag.addTask(new DummyTask("task5", "nn1", taskSubmitter));
-
-    PowerMockito.mockStatic(DagBuilder.class);
-    when(DagBuilder.getInstallationDag(any(JsonCluster.class), any(ClusterRuntime.class), any(ClusterStats.class), any(
-        TaskSubmitter.class), any(Map.class))).thenReturn(dag);
-    PowerMockito.mockStatic(ClusterDefinitionService.class);
-    when(ClusterDefinitionService.yamlToJsonObject(Mockito.anyString())).thenReturn(new JsonCluster());
-    Long runTime = clusterCost.getClusterTime(Mockito.anyString());
-    logger.debug("Cluster run time : " + runTime);
-    Assert.assertEquals(runTime, new Long(120), "Calculated runtime does not match");
-  }
-
-  @Test
-  public void testGetClusterPrice() {
+    dag.addTask(new DummyTask("task1", "nn1", machineType, taskSubmitter));
+    dag.addTask(new DummyTask("task2", "nn2", machineType, taskSubmitter));
+    dag.addTask(new DummyTask("task3", "nn2", machineType, taskSubmitter));
+    dag.addTask(new DummyTask("task4", "nn1", machineType, taskSubmitter));
+    dag.addTask(new DummyTask("task5", "nn1", machineType, taskSubmitter));
+    return dag;
   }
 
 }
@@ -94,17 +121,18 @@ public class ClusterCostTest extends PowerMockTestCase {
  */
 class DummyTask extends Task {
 
-  public DummyTask(String id, String machineId, TaskSubmitter submitter) {
-    this(id, getMachineRuntime(machineId), submitter);
+  public DummyTask(String id, String machineId, String provider, TaskSubmitter submitter) {
+    this(id, getMachineRuntime(machineId, provider), submitter);
   }
 
   private DummyTask(String id, MachineRuntime machineRuntime, TaskSubmitter submitter) {
     super(id, id, machineRuntime, new ClusterStats(), submitter);
   }
 
-  private static MachineRuntime getMachineRuntime(String machineId) {
+  private static MachineRuntime getMachineRuntime(String machineId, String provider) {
     MachineRuntime machineRuntime = new MachineRuntime(null);
     machineRuntime.setPublicIp(machineId);
+    machineRuntime.setMachineType(provider);
     return machineRuntime;
   }
 
