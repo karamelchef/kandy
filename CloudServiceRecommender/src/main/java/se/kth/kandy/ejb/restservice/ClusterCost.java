@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -183,6 +184,7 @@ public class ClusterCost {
         //TODO: query the task duration from database by taskId and machineID
         task.setDuration(taskDuration);
         machines.addTask(task.getMachineId(), task);
+        printMachinesStatus();
       }
 
       @Override
@@ -225,6 +227,7 @@ public class ClusterCost {
       logger.debug(" succeed : " + task.getId() + " on " + task.getMachineId() + " Type " + task.getMachine().
           getMachineType() + " Duration: " + task.getDuration());
       task.succeed();
+      printMachinesStatus();
     }
 
     // Calculate cost of all machines regarding the total time they are running
@@ -257,4 +260,21 @@ public class ClusterCost {
     return clusterTimePrice;
   }
 
+  /**
+   * Prints out machine queue status
+   *
+   * Just used for reporting purposes.
+   */
+  private void printMachinesStatus() {
+    logger.debug("Global time: " + machines.getGlobalDuration());
+    for (Entry<String, MachineQueue> entry : machines.machineQueues.entrySet()) {
+      String status = "Machine: " + entry.getKey() + " Time: " + entry.getValue().time + " -> ";
+      Iterator<Task> iterator = entry.getValue().queue.iterator();
+      while (iterator.hasNext()) {
+        Task task = iterator.next();
+        status = status.concat("| " + task.getName() + " (" + task.getDuration() + ") ");
+      }
+      logger.debug(status);
+    }
+  }
 }
