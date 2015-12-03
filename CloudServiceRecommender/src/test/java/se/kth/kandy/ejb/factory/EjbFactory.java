@@ -23,7 +23,7 @@ public class EjbFactory {
   /**
    * Specifies database Url, User and Pass. A database with this same name should already be exist in the mysql
    */
-  private final static String databaseUrl = "jdbc:mysql://localhost:3306/servicerecommender";
+  private final static String databaseUrl = "jdbc:mysql://130.237.238.190:3306/servicerecommender";
   private final static String databaseUser = "kthfs";
   private final static String databasePass = "kthfs";
 

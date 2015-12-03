@@ -1,0 +1,73 @@
+name: HopsOneNode_bm_test_hopsworks
+baremetal:
+   ips:
+   - 10.200.1.106
+   sudoPassword: ''
+   username: root
+cookbooks:
+   zeppelin:
+     branch: master@{2015-11-15}
+     github: hopshadoop/zeppelin-chef
+   ndb:
+     branch: master
+     github: hopshadoop/ndb-chef
+   hopsworks:
+     branch: 7e737bcc2dac6b4d4ad1888f20ca4e0a83e588f4
+     github: hopshadoop/hopsworks-chef
+   elastic:
+     branch: master
+     github: hopshadoop/elasticsearch-chef
+   spark:
+     branch: 871ef4456165980a649594911fed9eaa24f03457
+     github: hopshadoop/spark-chef
+   hops:
+     branch: master
+     github: hopshadoop/hops-hadoop-chef
+   flink:
+     branch: hops
+     github: hopshadoop/flink-chef
+attrs:
+   hadoop:
+     mr:
+       user: glassfish
+     yarn:
+       user: glassfish
+   zeppelin:
+     user: glassfish
+   hdfs:
+     user: glassfish
+   spark:
+     user: glassfish
+   hops:
+     use_hopsworks: 'true'
+groups:
+   hops:
+     size: 1
+     baremetal:
+       ips:
+       - 10.200.1.106
+       sudoPassword: ''
+     attrs:
+       hadoop:
+         mr:
+           user: glassfish
+         yarn:
+           user: glassfish
+       hdfs:
+         user: glassfish
+       hops:
+         use_hopsworks: 'true'
+     recipes:
+     - hops::nm
+     - hopsworks::default
+     - ndb::mysqld
+     - hops::nn
+     - flink::jobmanager
+     - hops::jhs
+     - hops::rm
+     - hops::ndb
+     - elastic::default
+     - hops::dn
+     - ndb::ndbd
+     - flink::taskmanager
+     - ndb::mgmd
