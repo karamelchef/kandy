@@ -25,14 +25,13 @@ public class ClusterCostFacadeRESTTest {
   @Test
   public void testCalculateTime() {
     try {
-      // ec2 spot prices
-      String yaml = IoUtils.readContentFromClasspath("se/kth/kandy/yaml/saasfeeStandaloneEc2Variantcall.yml");
-      assertNotNull(clusterCostFacadeREST.calculateCost(yaml));
       //ec2 ondemand prices
-      yaml = IoUtils.readContentFromClasspath("se/kth/kandy/yaml/flink-on-hdfs-3node-aws-m3-med.yml");
+      String yaml = IoUtils.readContentFromClasspath("se/kth/kandy/yaml/flink-on-hdfs-3node-aws-m3-med.yml");
       assertNotNull(clusterCostFacadeREST.calculateCost(yaml));
       // baremetal
       yaml = IoUtils.readContentFromClasspath("se/kth/kandy/yaml/StandaloneFlinkWithHDFSBareMetal.yml");
+      assertNotNull(clusterCostFacadeREST.calculateCost(yaml));
+      yaml = IoUtils.readContentFromClasspath("se/kth/kandy/yaml/test.yml");
       assertNotNull(clusterCostFacadeREST.calculateCost(yaml));
 
     } catch (KaramelException | IOException ex) {

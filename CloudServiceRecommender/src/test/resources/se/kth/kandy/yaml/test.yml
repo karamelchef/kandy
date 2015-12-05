@@ -1,0 +1,29 @@
+name: HopsOneNode
+ec2:
+   region: eu-west-1
+   type: m3.medium
+cookbooks:
+   ndb:
+     branch: master
+     github: hopshadoop/ndb-chef
+   hops:
+     branch: master
+     github: hopshadoop/hops-hadoop-chef
+attrs: {
+   }
+groups:
+   hops:
+     size: 1
+     attrs: {
+       }
+     recipes:
+     - hops::nm
+     - ndb::mysqld
+     - hops::nn
+     - hops::jhs
+     - hops::rm
+     - hops::ndb
+     - hops::dn
+     - ndb::ndbd
+     - ndb::mgmd
+ 
