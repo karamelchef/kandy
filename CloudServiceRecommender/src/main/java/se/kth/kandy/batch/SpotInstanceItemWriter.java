@@ -32,7 +32,7 @@ public class SpotInstanceItemWriter extends AbstractItemWriter {
   public void writeItems(List<Object> items) throws Exception {
     List<AwsEc2SpotInstance> instanceList = (List<AwsEc2SpotInstance>) items.get(0);
     for (AwsEc2SpotInstance instance : instanceList) {
-      awsEc2SpotInstanceFacade.create(instance);
+      awsEc2SpotInstanceFacade.edit(instance);
     }
   }
 

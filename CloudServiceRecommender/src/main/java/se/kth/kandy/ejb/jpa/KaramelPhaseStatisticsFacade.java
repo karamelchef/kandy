@@ -30,6 +30,9 @@ public class KaramelPhaseStatisticsFacade extends AbstractFacade<KaramelPhaseSta
   public long maxID(KaramelStatistics karamelStatistics) {
     Query query = getEntityManager().createNamedQuery("KaramelPhaseStatistics.maxID");
     query.setParameter("karamelStatisticsID", karamelStatistics.getId());
+    if (query.getSingleResult() == null) {
+      return 0;
+    }
     return (Long) query.getSingleResult(); // if there would be no result it will return 0
   }
 }

@@ -1,12 +1,8 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package se.kth.kandy.ejb.jpa;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Date;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -58,5 +54,36 @@ public class AwsEc2SpotInstanceFacade extends AbstractFacade<AwsEc2SpotInstance>
       total = total.add(price);
     }
     return total.divide(new BigDecimal(priceList.size()), 8, RoundingMode.HALF_UP);
+  }
+
+  /**
+   * Query the database for the last date, spot instance prices had been fetched until that, if there is no such a date
+   * will return min long value
+   *
+   * @return long
+   */
+  public long getlastSamplingDate() {
+    Query query = getEntityManager().createNamedQuery("AwsEc2SpotInstance.lastSamplingDate");
+    Date timeStamp = (Date) query.getSingleResult();
+    if (timeStamp != null) {
+      return timeStamp.getTime();
+    } else {
+      return Long.MIN_VALUE;
+    }
+  }
+
+  /**
+   * Query list of spot instances with specified instanceType and availability zone
+   *
+   * @param instanceType
+   * @param availabilityZone
+   * @return list of instances sorted ascending
+   */
+  public List<AwsEc2SpotInstance> getSpotInstanceList(String instanceType, String availabilityZone) {
+    Query query = getEntityManager().createNamedQuery("AwsEc2SpotInstance.instancePriceList", AwsEc2SpotInstance.class);
+    query.setParameter("instanceType", instanceType);
+    query.setParameter("productDescription", "Linux/UNIX");
+    query.setParameter("availabilityZone", availabilityZone);
+    return (List<AwsEc2SpotInstance>) query.getResultList();
   }
 }

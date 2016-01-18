@@ -126,7 +126,7 @@ class DummyTask extends Task {
   }
 
   private DummyTask(String id, MachineRuntime machineRuntime, TaskSubmitter submitter) {
-    super(id, id, machineRuntime, new ClusterStats(), submitter);
+    super(id, id, false, machineRuntime, new ClusterStats(), submitter);
   }
 
   private static MachineRuntime getMachineRuntime(String machineId, String provider) {

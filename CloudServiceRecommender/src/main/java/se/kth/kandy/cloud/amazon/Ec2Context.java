@@ -32,8 +32,7 @@ import se.kth.kandy.cloud.common.Settings;
 
 /**
  *
- * @author kamal
- * @author Hossein - Add {@link #getSpotInstanceApi() }
+ * @author Hossein
  */
 public class Ec2Context {
 

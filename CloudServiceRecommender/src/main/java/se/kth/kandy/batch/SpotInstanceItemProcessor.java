@@ -14,6 +14,7 @@ import javax.batch.api.chunk.ItemProcessor;
 import javax.inject.Named;
 import org.jclouds.aws.ec2.domain.Spot;
 import se.kth.kandy.model.AwsEc2SpotInstance;
+import se.kth.kandy.model.AwsEc2SpotInstanceID;
 
 /**
  *
@@ -27,9 +28,9 @@ public class SpotInstanceItemProcessor implements ItemProcessor {
     List<AwsEc2SpotInstance> instanceList = new ArrayList<>();
     Set<Spot> spots = (Set<Spot>) item;
     for (Spot spot : spots) {
-      instanceList.add(new AwsEc2SpotInstance(spot.getRegion(), spot.getInstanceType(), spot.getProductDescription(),
-          new BigDecimal(spot.getSpotPrice()), new Timestamp(spot.getTimestamp().getTime()),
-          spot.getAvailabilityZone()));
+      instanceList.add(new AwsEc2SpotInstance(new AwsEc2SpotInstanceID(spot.getRegion(), spot.getInstanceType(), spot.
+          getProductDescription(), new Timestamp(spot.getTimestamp().getTime()), spot.getAvailabilityZone()),
+          new BigDecimal(spot.getSpotPrice())));
     }
     return instanceList;
   }
