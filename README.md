@@ -28,7 +28,7 @@ Server for Spot Pricing Details and Error Reporting.
   * Use [Add Resources Button] to load xml file
   * restart the server
 3. An empty databse called **servicerecommender** should be created in mysql manually.
-4. increase packet size in mysql [SET GLOBAL max_allowed_packet= 536870912;]
+4. increase packet size in mysql -> /etc/mysql/my.cnf  under [mysqld] max_allowed_packet= 128M
 
 #### Payara configration for batch job : 
 JavaEE Batch does not support mysql when deployed on glassfish so we use payara
