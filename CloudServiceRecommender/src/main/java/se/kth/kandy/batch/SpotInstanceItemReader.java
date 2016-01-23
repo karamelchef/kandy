@@ -19,7 +19,7 @@ import se.kth.kandy.ejb.jpa.AwsEc2SpotInstanceFacade;
  * Batch job artifact - fetch the spot instances details from amazon cloud
  *
  * Starts from midnight today, 00:00:00 and makes sampling for 1 hour and then goes back in time for 8 hours and will do
- * the same for past 60 days or last sampling date in database. everyday [23:00-00:00], [15:00-16:00] and [07:00-08:00]
+ * the same for past 85 days or last sampling date in database. everyday [23:00-00:00], [15:00-16:00] and [07:00-08:00]
  *
  * @author Hossein
  */
@@ -39,7 +39,7 @@ public class SpotInstanceItemReader extends AbstractItemReader {
   /**
    * use this time (mid night yesterday) to start fetching spot instance prices and goes back in time
    */
-  private Date mMidnightYesterday;
+  private Date mStartOfSamplingPeriod;
   /**
    * The wait time between starting new sampling
    */
@@ -48,7 +48,7 @@ public class SpotInstanceItemReader extends AbstractItemReader {
    * Length of each sampling
    */
   private static final long SAMPLING_LENGTH = 3600000L; // 1 hour
-  public static final long SAMPLING_PERIOD_LENGHT = 5184000000L; // 2 months
+  public static final long SAMPLING_PERIOD_LENGHT = 7344000000L; // 85 days
   private long mSamplingTime;
   private long mEndTimeOfSamplingPeriod;
 
@@ -70,18 +70,27 @@ public class SpotInstanceItemReader extends AbstractItemReader {
     mRegions = mEc2ApiWrapper.getConfiguredRegions().iterator();
     mRegion = mRegions.next();
 
+    long now = new Date().getTime();
+
     Calendar calStart = new GregorianCalendar();
-    calStart.setTime(new Date());
-    calStart.set(Calendar.HOUR_OF_DAY, 0);
+    calStart.setTime(new Date(now));
     calStart.set(Calendar.MINUTE, 0);
     calStart.set(Calendar.SECOND, 0);
     calStart.set(Calendar.MILLISECOND, 0);
-    mMidnightYesterday = calStart.getTime();
 
-    mSamplingTime = mMidnightYesterday.getTime();
+    calStart.set(Calendar.HOUR_OF_DAY, 16);
+    if (now < calStart.getTimeInMillis()) {
+      calStart.set(Calendar.HOUR_OF_DAY, 8);
+      if (now < calStart.getTimeInMillis()) {
+        calStart.set(Calendar.HOUR_OF_DAY, 0);
+      }
+    }
+    mStartOfSamplingPeriod = calStart.getTime();
+
+    mSamplingTime = mStartOfSamplingPeriod.getTime();
     mEndTimeOfSamplingPeriod = mSamplingTime - SAMPLING_PERIOD_LENGHT;
 
-    // fetch new data until last sampling date in database otherwise fetch data for past two months
+    // fetch new data until last sampling date in database otherwise fetch data for past 85 days
     if (mEndTimeOfSamplingPeriod < awsEc2SpotInstanceFacade.getlastSamplingDate()) {
       mEndTimeOfSamplingPeriod = awsEc2SpotInstanceFacade.getlastSamplingDate();
     }
@@ -93,7 +102,7 @@ public class SpotInstanceItemReader extends AbstractItemReader {
       logger.debug("Aws Spot instance prices, fetched for region: " + mRegion);
       if (mRegions.hasNext()) {
         mRegion = mRegions.next();
-        mSamplingTime = mMidnightYesterday.getTime();
+        mSamplingTime = mStartOfSamplingPeriod.getTime();
       } else {
         return null; // end of sampling for all regions
       }

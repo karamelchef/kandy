@@ -36,7 +36,7 @@ public class SpotInstanceReliability {
    * specified bid and availability zone.
    *
    * It uses Aws spot price history and kaplan-meier estimator. It assumes there are instances allocating every day at
-   * 7:00 for the past 60 days and calculate their availability time regarding the specified bid. Finally sort the
+   * 7:00 for the past 85 days and calculate their availability time regarding the specified bid. Finally sort the
    * availability list and uses Kaplan-Meier estimator to calculate empirical probability of success.
    *
    * @param instanceType
@@ -60,7 +60,7 @@ public class SpotInstanceReliability {
     calStart.set(Calendar.MINUTE, 0);
     calStart.set(Calendar.SECOND, 0);
     calStart.set(Calendar.MILLISECOND, 0);
-    // start from 60 days ago at 07:00:00
+    // start from 85 days ago at 07:00:00
     long startSamplingTime = calStart.getTimeInMillis() - SpotInstanceItemReader.SAMPLING_PERIOD_LENGHT;
 
     List<Long> instancesAvailTimeList = new ArrayList<>();
