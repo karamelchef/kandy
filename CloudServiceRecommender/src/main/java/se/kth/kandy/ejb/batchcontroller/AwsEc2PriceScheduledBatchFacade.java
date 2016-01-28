@@ -26,7 +26,7 @@ public class AwsEc2PriceScheduledBatchFacade {
   /**
    * Delay between running the jobs
    */
-  private static final int mDelay = 24;
+  private static final int mDelay = 8;
   private static final Logger logger = Logger.getLogger(AwsEc2PriceScheduledBatchFacade.class);
 
   @Resource

@@ -7,6 +7,7 @@ import org.apache.log4j.Logger;
 import se.kth.kandy.ejb.jpa.AwsEc2SpotInstanceFacade;
 import se.kth.kandy.ejb.jpa.KaramelPhaseStatisticsFacade;
 import se.kth.kandy.ejb.restservice.ClusterCostFacadeREST;
+import se.kth.kandy.ejb.restservice.MaxProfitEstimator;
 import se.kth.kandy.ejb.restservice.SpotInstanceReliability;
 
 /**
@@ -84,6 +85,16 @@ public class EjbFactory {
     try {
       return (KaramelPhaseStatisticsFacade) container.getContext().lookup(
           "java:global/CloudServiceRecommender/KaramelPhaseStatisticsFacade");
+    } catch (NamingException ex) {
+      logger.error("Could not resolve session bean", ex);
+    }
+    return null;
+  }
+
+  public MaxProfitEstimator getMaxProfitEstimator() {
+    try {
+      return (MaxProfitEstimator) container.getContext().
+          lookup("java:global/CloudServiceRecommender/MaxProfitEstimator");
     } catch (NamingException ex) {
       logger.error("Could not resolve session bean", ex);
     }
