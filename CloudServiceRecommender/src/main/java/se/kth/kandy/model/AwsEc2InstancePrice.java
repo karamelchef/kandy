@@ -9,6 +9,7 @@ import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.MapsId;
+import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
@@ -21,9 +22,13 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "awsec2_instance_price")
-@NamedQuery(name = "AwsEc2InstancePrice.price",
-    query = "SELECT a.price FROM AwsEc2InstancePrice a WHERE a.id.name = :instanceType AND "
-    + "a.id.operatingSystem = :instanceOs AND a.id.purchaseOption = :purchaseOption AND a.id.region = :region")
+@NamedQueries({
+  @NamedQuery(name = "AwsEc2InstancePrice.price",
+      query = "SELECT a.price FROM AwsEc2InstancePrice a WHERE a.id.name = :instanceType AND "
+      + "a.id.operatingSystem = :instanceOs AND a.id.purchaseOption = :purchaseOption AND a.id.region = :region"),
+  @NamedQuery(name = "AwsEc2InstancePrice.region",
+      query = "SELECT  distinct a.id.region FROM AwsEc2InstancePrice a WHERE a.id.name = :instanceType AND "
+      + "a.id.operatingSystem = :instanceOs AND a.id.purchaseOption = :purchaseOption")})
 public class AwsEc2InstancePrice implements Serializable {
 
   private static final long serialVersionUID = 1L;

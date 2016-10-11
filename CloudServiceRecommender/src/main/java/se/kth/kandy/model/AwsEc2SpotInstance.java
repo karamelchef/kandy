@@ -29,7 +29,10 @@ import javax.persistence.Table;
   @NamedQuery(name = "AwsEc2SpotInstance.instancePriceList",
       query = "SELECT k FROM AwsEc2SpotInstance k WHERE k.id.instanceType = :instanceType AND "
       + "k.id.productDescription = :productDescription AND k.id.availabilityZone = :availabilityZone "
-      + "ORDER BY k.id.timeStamp ASC")})
+      + "ORDER BY k.id.timeStamp ASC"),
+  @NamedQuery(name = "AwsEc2SpotInstance.availabilityZone",
+      query = "SELECT distinct k.id.availabilityZone FROM AwsEc2SpotInstance k WHERE k.id.instanceType = :instanceType "
+      + "AND k.id.productDescription = :productDescription")})
 public class AwsEc2SpotInstance implements Serializable {
 
   private static final long serialVersionUID = 1L;

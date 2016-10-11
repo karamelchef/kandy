@@ -86,4 +86,16 @@ public class AwsEc2SpotInstanceFacade extends AbstractFacade<AwsEc2SpotInstance>
     query.setParameter("availabilityZone", availabilityZone);
     return (List<AwsEc2SpotInstance>) query.getResultList();
   }
+
+  /**
+   *
+   * @param instanceType
+   * @return
+   */
+  public List<String> getAvailabilityZones(String instanceType) {
+    Query query = getEntityManager().createNamedQuery("AwsEc2SpotInstance.availabilityZone", AwsEc2SpotInstance.class);
+    query.setParameter("instanceType", instanceType);
+    query.setParameter("productDescription", "Linux/UNIX");
+    return (List<String>) query.getResultList();
+  }
 }

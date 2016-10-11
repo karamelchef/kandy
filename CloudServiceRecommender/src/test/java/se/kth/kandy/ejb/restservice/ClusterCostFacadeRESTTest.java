@@ -6,6 +6,7 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.fail;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import se.kth.kandy.cloud.common.exception.ServiceRecommanderException;
 import se.kth.kandy.ejb.factory.EjbFactory;
 import se.kth.karamel.common.exception.KaramelException;
 import se.kth.karamel.common.util.IoUtils;
@@ -23,7 +24,7 @@ public class ClusterCostFacadeRESTTest {
   private ClusterCostFacadeREST clusterCostFacadeREST = null;
 
   @Test
-  public void testCalculateTime() {
+  public void testCalculateTime() throws ServiceRecommanderException {
     try {
       //ec2 ondemand prices
       String yaml = IoUtils.readContentFromClasspath("se/kth/kandy/yaml/flink-on-hdfs-3node-aws-m3-med.yml");

@@ -1,6 +1,7 @@
 package se.kth.kandy.ejb.jpa;
 
 import java.math.BigDecimal;
+import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -36,15 +37,28 @@ public class AwsEc2InstancePriceFacade extends AbstractFacade<AwsEc2InstancePric
    * @param purchaseOption
    * @return
    */
-  public BigDecimal getPrice(String region, String type, String os, String purchaseOption) {
+  public BigDecimal getPrice(String region, String type) {
     Query query = getEntityManager().createNamedQuery("AwsEc2InstancePrice.price");
     query.setParameter("instanceType", type);
-    query.setParameter("instanceOs", os);
-    query.setParameter("purchaseOption", purchaseOption);
+    query.setParameter("instanceOs", "Linux");
+    query.setParameter("purchaseOption", "ODHourly");
     query.setParameter("region", region);
     if (query.getSingleResult() == null) {
       return BigDecimal.ZERO;
     }
     return (BigDecimal) query.getSingleResult();
+  }
+
+  /**
+   *
+   * @param instanceType
+   * @return
+   */
+  public List<String> getRegions(String instanceType) {
+    Query query = getEntityManager().createNamedQuery("AwsEc2InstancePrice.region");
+    query.setParameter("instanceType", instanceType);
+    query.setParameter("instanceOs", "Linux");
+    query.setParameter("purchaseOption", "ODHourly");
+    return (List<String>) query.getResultList();
   }
 }

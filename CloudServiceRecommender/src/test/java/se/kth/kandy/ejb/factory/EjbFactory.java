@@ -4,11 +4,11 @@ import java.util.Properties;
 import javax.ejb.embeddable.EJBContainer;
 import javax.naming.NamingException;
 import org.apache.log4j.Logger;
+import se.kth.kandy.ejb.algorithm.InstanceFilter;
+import se.kth.kandy.ejb.algorithm.MinCostInstanceEstimator;
 import se.kth.kandy.ejb.jpa.AwsEc2SpotInstanceFacade;
 import se.kth.kandy.ejb.jpa.KaramelPhaseStatisticsFacade;
 import se.kth.kandy.ejb.restservice.ClusterCostFacadeREST;
-import se.kth.kandy.ejb.restservice.MaxProfitEstimator;
-import se.kth.kandy.ejb.restservice.SpotInstanceReliability;
 
 /**
  * Singleton design pattern. Factory for initializing session beans for integration tests
@@ -71,10 +71,10 @@ public class EjbFactory {
     return null;
   }
 
-  public SpotInstanceReliability getSpotInstanceReliability() {
+  public MinCostInstanceEstimator getMinCostInstanceEstimator() {
     try {
-      return (SpotInstanceReliability) container.getContext().lookup(
-          "java:global/CloudServiceRecommender/SpotInstanceReliability");
+      return (MinCostInstanceEstimator) container.getContext().lookup(
+          "java:global/CloudServiceRecommender/MinCostInstanceEstimator");
     } catch (NamingException ex) {
       logger.error("Could not resolve session bean", ex);
     }
@@ -91,10 +91,10 @@ public class EjbFactory {
     return null;
   }
 
-  public MaxProfitEstimator getMaxProfitEstimator() {
+  public InstanceFilter getInstanceFilter() {
     try {
-      return (MaxProfitEstimator) container.getContext().
-          lookup("java:global/CloudServiceRecommender/MaxProfitEstimator");
+      return (InstanceFilter) container.getContext().
+          lookup("java:global/CloudServiceRecommender/InstanceFilter");
     } catch (NamingException ex) {
       logger.error("Could not resolve session bean", ex);
     }

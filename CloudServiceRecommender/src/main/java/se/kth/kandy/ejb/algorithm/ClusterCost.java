@@ -1,4 +1,4 @@
-package se.kth.kandy.ejb.restservice;
+package se.kth.kandy.ejb.algorithm;
 
 import com.google.gson.JsonObject;
 import java.math.BigDecimal;
@@ -12,8 +12,9 @@ import java.util.Queue;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import org.apache.log4j.Logger;
+import se.kth.kandy.cloud.amazon.Ec2ApiWrapper;
+import se.kth.kandy.cloud.common.exception.ServiceRecommanderException;
 import se.kth.kandy.ejb.jpa.AwsEc2InstancePriceFacade;
-import se.kth.kandy.ejb.jpa.AwsEc2SpotInstanceFacade;
 import se.kth.kandy.ejb.jpa.KaramelTaskStatisticsFacade;
 import se.kth.kandy.json.cost.ClusterTimePrice;
 import se.kth.karamel.backend.ClusterDefinitionService;
@@ -34,20 +35,24 @@ import se.kth.karamel.common.stats.ClusterStats;
  * 1. The algorithm first simulates the running environment and machine queues involved in running the cluster.
  *
  * 2.Instead of actually running the cluster on machines it fetch the history of previously run tasks from the database
- * based on provider type EC2, GCE or BAREMETAL.
+ * based on provider type EC2, GCE or BAREMETAL. //TODO: ex: EC2 is not enough, need to take into account InstanceType
+ * and region
  *
  * 3. Starts the DAG and calculate the total time
  *
  * 4. For total price fetch machine prices from the database, sum the prices of machines then times previously
  * calculated duration round up to hours.
  *
+ * Note: At the start of each instance hour, you are billed based on the Spot price. If your Spot instance is
+ * interrupted in the middle of an instance hour because the Spot price exceeded your bid, you are not billed for the
+ * partial hour of use. If you terminate your Spot instance in the middle of an instance hour, you are billed for the
+ * partial hour of use. For OnDemand instances it is always rounded up in hour.
+ *
  * @author Hossein
  */
 @Stateless
 public class ClusterCost {
 
-  @EJB
-  protected AwsEc2SpotInstanceFacade awsEc2SpotInstanceFacade;
   @EJB
   protected AwsEc2InstancePriceFacade awsEc2InstancePriceFacade;
   @EJB
@@ -203,7 +208,8 @@ public class ClusterCost {
    * @return
    * @throws KaramelException
    */
-  public ClusterTimePrice getClusterCost(String clusterYaml) throws KaramelException {
+  public ClusterTimePrice estimateAvailabilityTimeAndTrueCost(String clusterYaml) throws KaramelException,
+      ServiceRecommanderException {
     machines = new Machines();
     JsonCluster jsonCluster = ClusterDefinitionService.yamlToJsonObject(clusterYaml);
     ClusterRuntime dummyClusterRuntime = MockingUtil.dummyRuntime(jsonCluster);
@@ -241,9 +247,9 @@ public class ClusterCost {
         BigDecimal price = BigDecimal.ZERO;
         //TODO: os and purchase option are assumed default, need to specify them from ami
         if (machineType[5].equalsIgnoreCase("null")) { // OnDemand or Reserved Instances
-          price = awsEc2InstancePriceFacade.getPrice(machineType[1], machineType[2], "Linux", "ODHourly");
+          price = awsEc2InstancePriceFacade.getPrice(machineType[1], machineType[2]);
         } else { // Spot instances
-          price = awsEc2SpotInstanceFacade.getAveragePrice(machineType[1], machineType[2], "Linux/UNIX");
+          price = Ec2ApiWrapper.getInstance().getCurrentLinuxSpotPrice(machineType[2], machineType[1]);
         }
         totalCost = totalCost.add(price.multiply(runTimeHours));
 

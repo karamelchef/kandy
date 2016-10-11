@@ -1,4 +1,4 @@
-package se.kth.kandy.ejb.restservice;
+package se.kth.kandy.ejb.algorithm;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,9 +14,9 @@ import se.kth.kandy.model.AwsEc2Instance;
  * @author Hossein
  */
 @Stateless
-public class MaxProfitEstimator {
+public class InstanceFilter {
 
-  private static final Logger logger = Logger.getLogger(MaxProfitEstimator.class);
+  private static final Logger logger = Logger.getLogger(InstanceFilter.class);
 
   @EJB
   private AwsEc2InstanceFacade awsEc2InstanceFacade;
@@ -26,9 +26,10 @@ public class MaxProfitEstimator {
    */
   public enum ECU {
 
-    ALL(0), VARIABLE(0), FIXED3(3), FIXED6p5(6.5f), FIXED7(7), FIXED8(8), FIXED13(13), FIXED14(14), FIXED16(16),
-    FIXED26(26), FIXED27(27), FIXED28(28), FIXED31(31), FIXED52(52), FIXED53(53), FIXED53p5(53.5f), FIXED55(55),
-    FIXED56(56), FIXED62(62), FIXED104(104), FIXED108(108), FIXED116(116), FIXED124p5(124.5f), FIXED132(132);
+    ALL(0), VARIABLE(0), FIXED3(3), FIXED6p5(6.5f), FIXED7(7), FIXED8(8), FIXED12(12), FIXED13(13), FIXED14(14),
+    FIXED16(16), FIXED26(26), FIXED27(27), FIXED28(28), FIXED31(31), FIXED52(52), FIXED53(53), FIXED53p5(53.5f),
+    FIXED55(55), FIXED56(56), FIXED62(62), FIXED94(94), FIXED104(104), FIXED108(108), FIXED116(116), FIXED124p5(124.5f),
+    FIXED132(132), FIXED188(188), FIXED349(349);
 
     private float ecu;
 
@@ -47,8 +48,8 @@ public class MaxProfitEstimator {
   public enum STORAGEGB {
 
     ALL(0), EBSONLY(0), SSD4(4), SSD32(32), SSD60(60), SSD80(80), SSD160(160), SSD240(240), SSD320(320), SSD360(360),
-    SSD640(640), SSD800(800), SSD1600(1600), SSD2400(2400), SSD6400(6400), HDD6000(6000), HDD12000(12000), HDD24000(
-        24000), HDD48000(48000);
+    SSD640(640), SSD800(800), SSD1600(1600), SSD2400(2400), SSD3200(3200), SSD3840(3840), SSD6400(6400), HDD6000(6000),
+    HDD12000(12000), HDD24000(24000), HDD48000(48000);
 
     private int storage;
 

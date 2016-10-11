@@ -1,4 +1,4 @@
-package se.kth.kandy.ejb.restservice;
+package se.kth.kandy.ejb.algorithm;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -16,8 +16,9 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import static org.testng.Assert.assertEquals;
 import org.testng.annotations.Test;
+import se.kth.kandy.cloud.amazon.Ec2ApiWrapper;
+import se.kth.kandy.cloud.common.exception.ServiceRecommanderException;
 import se.kth.kandy.ejb.jpa.AwsEc2InstancePriceFacade;
-import se.kth.kandy.ejb.jpa.AwsEc2SpotInstanceFacade;
 import se.kth.kandy.ejb.jpa.KaramelTaskStatisticsFacade;
 import se.kth.kandy.json.cost.ClusterTimePrice;
 import se.kth.karamel.backend.ClusterDefinitionService;
@@ -40,20 +41,19 @@ import se.kth.karamel.common.stats.ClusterStats;
  *
  * @author Hossein
  */
-@PrepareForTest({DagBuilder.class, ClusterDefinitionService.class})
+@PrepareForTest({DagBuilder.class, ClusterDefinitionService.class, Ec2ApiWrapper.class})
 @PowerMockIgnore({"org.apache.log4j.*"})
 public class ClusterCostTest extends PowerMockTestCase {
 
   private static final Logger logger = Logger.getLogger(ClusterCostTest.class);
 
   @Test
-  public void testGetClusterCostForEc2() throws DagConstructionException, KaramelException {
+  public void testEstimateAvailabilityTimeAndTrueCost() throws DagConstructionException, KaramelException, ServiceRecommanderException {
 
     ClusterCost clusterCost = new ClusterCost();
 
     KaramelTaskStatisticsFacade karamelTaskStatisticsFacadeMocked = Mockito.mock(KaramelTaskStatisticsFacade.class);
     AwsEc2InstancePriceFacade awsEc2InstancePriceFacadeMocked = Mockito.mock(AwsEc2InstancePriceFacade.class);
-    AwsEc2SpotInstanceFacade awsEc2SpotInstanceFacadeMocked = Mockito.mock(AwsEc2SpotInstanceFacade.class);
 
     // mock the task times retrieved from database
     when(karamelTaskStatisticsFacadeMocked.averageTaskTime("task1", "ec2")).thenReturn(new Long(50000));
@@ -63,16 +63,17 @@ public class ClusterCostTest extends PowerMockTestCase {
     when(karamelTaskStatisticsFacadeMocked.averageTaskTime("task5", "ec2")).thenReturn(new Long(40000));
 
     String machineTypeOnDemand = "ec2/eu-west-1/m3.large/ami-0307ce74/null/null";
-    when(awsEc2InstancePriceFacadeMocked.getPrice("eu-west-1", "m3.large", "Linux", "ODHourly")).thenReturn(
+    when(awsEc2InstancePriceFacadeMocked.getPrice("eu-west-1", "m3.large")).thenReturn(
         new BigDecimal("0.1460"));
 
     String machineTypeSpot = "ec2/eu-west-1/m3.large/ami-234ecc54/null/0.1";
-    when(awsEc2SpotInstanceFacadeMocked.getAveragePrice("eu-west-1", "m3.large", "Linux/UNIX")).thenReturn(
-        new BigDecimal("0.02071667"));
+    Ec2ApiWrapper ec2ApiWrapperMocked = Mockito.mock(Ec2ApiWrapper.class);
+    when(ec2ApiWrapperMocked.getCurrentLinuxSpotPrice("m3.large", "eu-west-1")).thenReturn(new BigDecimal("0.02071667"));
+    PowerMockito.mockStatic(Ec2ApiWrapper.class);
+    when(Ec2ApiWrapper.getInstance()).thenReturn(ec2ApiWrapperMocked);
 
     clusterCost.karamelTaskStatisticsFacade = karamelTaskStatisticsFacadeMocked;
     clusterCost.awsEc2InstancePriceFacade = awsEc2InstancePriceFacadeMocked;
-    clusterCost.awsEc2SpotInstanceFacade = awsEc2SpotInstanceFacadeMocked;
 
     PowerMockito.mockStatic(ClusterDefinitionService.class);
     when(ClusterDefinitionService.yamlToJsonObject(Mockito.anyString())).thenReturn(new JsonCluster());
@@ -83,7 +84,7 @@ public class ClusterCostTest extends PowerMockTestCase {
     Dag dagOnDemand = getDummyDag(machineTypeOnDemand, taskSubmitter);
     when(DagBuilder.getInstallationDag(any(JsonCluster.class), any(ClusterRuntime.class), any(ClusterStats.class), any(
         TaskSubmitter.class), any(Map.class))).thenReturn(dagOnDemand);
-    ClusterTimePrice clusterTimePrice = clusterCost.getClusterCost(Mockito.anyString());
+    ClusterTimePrice clusterTimePrice = clusterCost.estimateAvailabilityTimeAndTrueCost(Mockito.anyString());
     assertEquals(clusterTimePrice.getDuration(), 120000, "Calculated running time does not match"); //2 minute
     assertEquals(clusterTimePrice.getPrice(), new BigDecimal("0.2920"), "Calculated OnDemand price does not match");// in dollar
 
@@ -91,7 +92,7 @@ public class ClusterCostTest extends PowerMockTestCase {
     Dag dagSpot = getDummyDag(machineTypeSpot, taskSubmitter);
     when(DagBuilder.getInstallationDag(any(JsonCluster.class), any(ClusterRuntime.class), any(ClusterStats.class), any(
         TaskSubmitter.class), any(Map.class))).thenReturn(dagSpot);
-    clusterTimePrice = clusterCost.getClusterCost(Mockito.anyString());
+    clusterTimePrice = clusterCost.estimateAvailabilityTimeAndTrueCost(Mockito.anyString());
     assertEquals(clusterTimePrice.getDuration(), 120000, "Calculated running time does not match"); //2 minute
     assertEquals(clusterTimePrice.getPrice(), new BigDecimal("0.0414"), "Calculated spot sprice does not match");// in dollar
 
