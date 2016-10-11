@@ -1,5 +1,6 @@
 package se.kth.kandy.ejb.algorithm;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -40,6 +41,11 @@ public class InstanceFilter {
     public float getValue() {
       return ecu;
     }
+
+    @JsonCreator
+    public static ECU fromValue(String value) {
+      return ECU.valueOf(value);
+    }
   }
 
   /**
@@ -59,6 +65,11 @@ public class InstanceFilter {
 
     public int getValue() {
       return storage;
+    }
+
+    @JsonCreator
+    public static STORAGEGB fromValue(String value) {
+      return STORAGEGB.valueOf(value);
     }
   }
 

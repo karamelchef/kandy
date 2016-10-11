@@ -24,16 +24,16 @@ public class ClusterCostFacadeRESTTest {
   private ClusterCostFacadeREST clusterCostFacadeREST = null;
 
   @Test
-  public void testCalculateTime() throws ServiceRecommanderException {
+  public void testEstimateAvailabilityTimeAndTrueCost() throws ServiceRecommanderException {
     try {
       //ec2 ondemand prices
       String yaml = IoUtils.readContentFromClasspath("se/kth/kandy/yaml/flink-on-hdfs-3node-aws-m3-med.yml");
-      assertNotNull(clusterCostFacadeREST.calculateCost(yaml));
+      assertNotNull(clusterCostFacadeREST.estimateAvailabilityTimeAndTrueCost(yaml));
       // baremetal
       yaml = IoUtils.readContentFromClasspath("se/kth/kandy/yaml/StandaloneFlinkWithHDFSBareMetal.yml");
-      assertNotNull(clusterCostFacadeREST.calculateCost(yaml));
+      assertNotNull(clusterCostFacadeREST.estimateAvailabilityTimeAndTrueCost(yaml));
       yaml = IoUtils.readContentFromClasspath("se/kth/kandy/yaml/test.yml");
-      assertNotNull(clusterCostFacadeREST.calculateCost(yaml));
+      assertNotNull(clusterCostFacadeREST.estimateAvailabilityTimeAndTrueCost(yaml));
 
     } catch (KaramelException | IOException ex) {
       logger.error(ex.getMessage());

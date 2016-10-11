@@ -197,6 +197,7 @@ public class MinCostInstanceEstimator {
    * @param minMemoryGB
    * @param minStorage
    * @return ascending sorted list of estimated cost of all filtered instances and their possible zones
+   * @throws se.kth.kandy.cloud.common.exception.ServiceRecommanderException
    */
   public List<Ec2Instance> findAllInstancesZonesCost(long availabilityTime, float reliabilityLowerBound,
       InstanceFilter.ECU minECU, float minMemoryGB, InstanceFilter.STORAGEGB minStorage)
@@ -232,8 +233,8 @@ public class MinCostInstanceEstimator {
   public List<Ec2Instance> findInstanceZonesCost(long availabilityTime, float reliabilityLowerBound,
       String instanceType) throws ServiceRecommanderException {
 
-    List<Ec2Instance> instanceZonesCostList = new ArrayList<>();
-    instanceZonesCostList = estimateInstanceZonesCost(availabilityTime, reliabilityLowerBound, instanceType);
+    List<Ec2Instance> instanceZonesCostList = estimateInstanceZonesCost(availabilityTime, reliabilityLowerBound,
+        instanceType);
 
     Collections.sort(instanceZonesCostList); // sort the list ascending
     logger.

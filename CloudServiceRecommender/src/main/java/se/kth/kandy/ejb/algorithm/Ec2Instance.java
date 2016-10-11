@@ -1,13 +1,16 @@
 package se.kth.kandy.ejb.algorithm;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * store Instance estimated cost/profit and bid
  *
  * @author Hossein
  */
-public class Ec2Instance implements Comparable<Ec2Instance> {
+@XmlRootElement
+public class Ec2Instance implements Comparable<Ec2Instance>, Serializable {
 
   @Override
   public int compareTo(Ec2Instance o) {
@@ -20,11 +23,14 @@ public class Ec2Instance implements Comparable<Ec2Instance> {
     ONDEMAND, SPOT;
   }
 
-  private String InstanceName;
-  private String zone;
-  private BigDecimal estimatedCost;  // for all the hours, instance is running
-  private BigDecimal hourlyPrice; // For Ondemand instance price per hour for spot it is bid
-  private INSTANCETYPE type;
+  public String InstanceName;
+  public String zone;
+  public BigDecimal estimatedCost;  // for all the hours, instance is running
+  public BigDecimal hourlyPrice; // For Ondemand instance price per hour for spot it is bid
+  public INSTANCETYPE type;
+
+  public Ec2Instance() {
+  }
 
   public Ec2Instance(String InstanceName, String zone, BigDecimal estimatedCost, INSTANCETYPE type,
       BigDecimal hourlyPrice) {
