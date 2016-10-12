@@ -98,7 +98,7 @@ public class MinCostInstanceEstimator {
       float reliability = estimateSpotReliability(instanceType, availabilityZone, bid, availabilityTime);
       if (reliability != -1) {
         while (reliability < reliabilityLowerBound) {
-          bid = bid.add(new BigDecimal("0.01")); // increase the bid in $
+          bid = bid.add(new BigDecimal("0.02")); // increase the bid in $
           reliability = estimateSpotReliability(instanceType, availabilityZone, bid, availabilityTime);
         }
       }
