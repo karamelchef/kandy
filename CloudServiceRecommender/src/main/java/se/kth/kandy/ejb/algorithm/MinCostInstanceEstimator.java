@@ -4,7 +4,14 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import org.apache.log4j.Logger;
@@ -104,7 +111,7 @@ public class MinCostInstanceEstimator {
       float reliability = estimateSpotReliability(instanceType, availabilityZone, bid, availabilityTime);
       if (reliability != -1) {
         while (reliability < reliabilityLowerBound) {
-          bid = bid.add(new BigDecimal("0.05")); // increase the bid in $
+          bid = bid.add(new BigDecimal("0.02")); // increase the bid in $
           reliability = estimateSpotReliability(instanceType, availabilityZone, bid, availabilityTime);
         }
       }
@@ -196,23 +203,40 @@ public class MinCostInstanceEstimator {
    * the instance goes through all available regions and availability zones, calculates the estimated cost regarding the
    * specified availabilityTime and reliabilityLowerBound, and returns the list sorted ascending of instances.
    *
+   * This function uses thread pool. assign a thread to each instanceType and then collect results from all threads and
+   * sort.
+   *
    * @param availabilityTime
    * @param reliabilityLowerBound
    * @param minECU
    * @param minMemoryGB
    * @param minStorage
    * @return ascending sorted list of estimated cost of all filtered instances and their possible zones
+   *
    * @throws se.kth.kandy.cloud.common.exception.ServiceRecommanderException
+   * @throws java.lang.InterruptedException
+   * @throws java.util.concurrent.ExecutionException
    */
   public List<Ec2Instance> findAllInstancesZonesCost(long availabilityTime, float reliabilityLowerBound,
       InstanceFilter.ECU minECU, float minMemoryGB, InstanceFilter.STORAGEGB minStorage)
-      throws ServiceRecommanderException {
+      throws ServiceRecommanderException, InterruptedException, ExecutionException {
 
     List<String> filteredInstances = instanceFilter.filterEc2InstanceTypes(minECU, minMemoryGB, minStorage);
     List<Ec2Instance> instancesZonesCostList = new ArrayList<>();
 
-    for (String instanceType : filteredInstances) {
-      instancesZonesCostList.addAll(estimateInstanceZonesCost(availabilityTime, reliabilityLowerBound, instanceType));
+    ExecutorService threadPool = Executors.newFixedThreadPool(filteredInstances.size());
+    Set<Future<List<Ec2Instance>>> set = new HashSet<>();
+
+    for (String instanceType : filteredInstances) { //assign a thread to each instanceType/zones
+      Callable instanceZonesCostThread = new InstanceZonesCostThread(availabilityTime, reliabilityLowerBound,
+          instanceType, this);
+      Future<List<Ec2Instance>> future = threadPool.submit(instanceZonesCostThread);
+      set.add(future);
+    }
+
+    for (Future<List<Ec2Instance>> future : set) {
+      //this is synchronous part, calling future.get() waits untill response is ready
+      instancesZonesCostList.addAll(future.get());
     }
 
     Collections.sort(instancesZonesCostList); // sort the list ascending
@@ -241,16 +265,15 @@ public class MinCostInstanceEstimator {
     List<Ec2Instance> instanceZonesCostList = estimateInstanceZonesCost(availabilityTime, reliabilityLowerBound,
         instanceType);
 
-    Collections.sort(instanceZonesCostList); // sort the list ascending
-    logger.
-        debug("Filtered Ec2 instances list. Slb: " + reliabilityLowerBound + " AvailabilityTime: " + availabilityTime);
+    logger.debug("Filtered Ec2 instances list. Slb: " + reliabilityLowerBound
+        + " AvailabilityTime: " + availabilityTime);
     for (Ec2Instance instanceCost : instanceZonesCostList) {
       logger.debug(instanceCost);
     }
     return instanceZonesCostList;
   }
 
-  private List<Ec2Instance> estimateInstanceZonesCost(long availabilityTime, float reliabilityLowerBound,
+  public List<Ec2Instance> estimateInstanceZonesCost(long availabilityTime, float reliabilityLowerBound,
       String instanceType) throws ServiceRecommanderException {
 
     List<Ec2Instance> instanceZonesCostList = new ArrayList<>();
@@ -275,6 +298,7 @@ public class MinCostInstanceEstimator {
           ec2ApiWrapper.getCurrentLinuxSpotPrice(instanceType, availabilityZone), Ec2Instance.INSTANCETYPE.SPOT, bid));
     }
 
+    Collections.sort(instanceZonesCostList); // sort the list ascending
     return instanceZonesCostList;
   }
 

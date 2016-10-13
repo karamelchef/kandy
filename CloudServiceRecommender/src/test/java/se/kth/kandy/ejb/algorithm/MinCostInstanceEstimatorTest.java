@@ -80,19 +80,19 @@ public class MinCostInstanceEstimatorTest {
 
   //------------------------------------------------------------------------
   @Test
-  void testFindAllInstancesZonesCost() throws ServiceRecommanderException {
+  void testFindAllInstancesZonesCost() throws Exception {
     List<Ec2Instance> instances = minCostInstanceEstimator.findAllInstancesZonesCost(229727000L, (float) 0.7,
         InstanceFilter.ECU.FIXED26, 2f, InstanceFilter.STORAGEGB.HDD12000);
   }
 
   @Test
-  void testFindAllInstancesZonesCost1() throws ServiceRecommanderException {
+  void testFindAllInstancesZonesCost1() throws Exception {
     List<Ec2Instance> instances = minCostInstanceEstimator.findAllInstancesZonesCost(229727000L, (float) 0.7,
         InstanceFilter.ECU.FIXED116, 244f, InstanceFilter.STORAGEGB.HDD12000);
   }
 
   @Test
-  void testFindAllInstancesZonesCost2() throws ServiceRecommanderException {
+  void testFindAllInstancesZonesCost2() throws Exception {
     List<Ec2Instance> instances = minCostInstanceEstimator.findAllInstancesZonesCost(229727000L, (float) 0.7,
         InstanceFilter.ECU.ALL, 0f, InstanceFilter.STORAGEGB.ALL);
   }

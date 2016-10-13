@@ -48,7 +48,7 @@ public class ClusterCostFacadeREST {
   @Consumes({MediaType.APPLICATION_JSON})
   @Produces({MediaType.APPLICATION_JSON})
   public List<Ec2Instance> findAllInstancesZonesCost(InstanceSpecification instanceSpecification)
-      throws ServiceRecommanderException {
+      throws Exception {
     return minCostInstanceEstimator.findAllInstancesZonesCost(
         instanceSpecification.getAvailabilityTime(),
         instanceSpecification.getReliabilityLowerBound(),
