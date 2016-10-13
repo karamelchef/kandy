@@ -238,6 +238,7 @@ public class MinCostInstanceEstimator {
       //this is synchronous part, calling future.get() waits untill response is ready
       instancesZonesCostList.addAll(future.get());
     }
+    threadPool.shutdown();
 
     Collections.sort(instancesZonesCostList); // sort the list ascending
     logger.

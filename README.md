@@ -59,8 +59,8 @@ http://Server:8080/CloudServiceRecommender/api/
 
 #### Increase Jvm heap size / glassfish memory
 1. Start Your payara server admin console: usually http://localhost:4848
-2. On your left navigate to [Configurations] > [server-config] / [default-config]> [Jvm settings] > [Jvm options] > -Xmx2048m
-
+2. On your left navigate to [Configurations] > [server-config] / [default-config]> [Jvm settings] > [Jvm options] > -Xmx2048m , -XX:MaxPermSize=512m
+3. 
 #### EJB timer configuration (optional):
 1. Start Your payara server admin console: usually http://localhost:4848
 2. On your left navigate to [Configurations] > [server-config] > [EJB Container]
