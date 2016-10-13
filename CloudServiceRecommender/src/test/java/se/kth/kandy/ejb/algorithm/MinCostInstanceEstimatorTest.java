@@ -100,7 +100,7 @@ public class MinCostInstanceEstimatorTest {
   //---------------------------------------------------------------------------
   @Test
   void testFindInstanceZonesCost() throws ServiceRecommanderException {
-    List<Ec2Instance> instances = minCostInstanceEstimator.findInstanceZonesCost(229727000L, (float) 0.7, "c3.xlarge");
+    List<Ec2Instance> instances = minCostInstanceEstimator.findInstanceZonesCost(229727000L, (float) 0.7, "c4.8xlarge");
   }
 
   //---------------------------------------------------------------------------

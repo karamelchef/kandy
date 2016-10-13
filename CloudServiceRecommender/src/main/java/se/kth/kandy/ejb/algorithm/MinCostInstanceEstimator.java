@@ -34,6 +34,12 @@ public class MinCostInstanceEstimator {
   @EJB
   private AwsEc2SpotInstanceFacade awsEc2SpotInstanceFacade;
 
+  private Ec2ApiWrapper ec2ApiWrapper;
+
+  public MinCostInstanceEstimator() throws ServiceRecommanderException {
+    this.ec2ApiWrapper = Ec2ApiWrapper.getInstance();
+  }
+
   /**
    * Estimate the probability that specified instance will be available for the user request time regarding the
    * specified bid and availability zone.
@@ -91,14 +97,14 @@ public class MinCostInstanceEstimator {
   public BigDecimal estimateMinBid(String instanceType, String availabilityZone, long availabilityTime,
       float reliabilityLowerBound) throws ServiceRecommanderException {
     // starts the bid from current spot market price
-    BigDecimal bid = Ec2ApiWrapper.getInstance().getCurrentLinuxSpotPrice(instanceType, availabilityZone);
+    BigDecimal bid = ec2ApiWrapper.getCurrentLinuxSpotPrice(instanceType, availabilityZone);
 
     if (bid.compareTo(BigDecimal.ZERO) == 1) {
       //bid should be more than 0, otherwise this instance/zone is not valid any more
       float reliability = estimateSpotReliability(instanceType, availabilityZone, bid, availabilityTime);
       if (reliability != -1) {
         while (reliability < reliabilityLowerBound) {
-          bid = bid.add(new BigDecimal("0.02")); // increase the bid in $
+          bid = bid.add(new BigDecimal("0.05")); // increase the bid in $
           reliability = estimateSpotReliability(instanceType, availabilityZone, bid, availabilityTime);
         }
       }
@@ -168,8 +174,7 @@ public class MinCostInstanceEstimator {
       Pmkt = awsEc2InstancePriceFacade.getPrice(zone, instanceType);
       Srv = 1;
     } else {//spot instance
-      Pmkt = Ec2ApiWrapper.getInstance().getCurrentLinuxSpotPrice(instanceType,
-          zone);
+      Pmkt = ec2ApiWrapper.getCurrentLinuxSpotPrice(instanceType, zone);
       Srv = estimateSpotReliability(instanceType, zone, bid, availabilityTime);
       //Instance average availability time, In case of failure
       Tfavg = estimateTerminationAverageRunTime(instanceType, zone, bid, availabilityTime);
@@ -179,7 +184,7 @@ public class MinCostInstanceEstimator {
     long Ts = (availabilityTime / ONE_HOUR_MILISECOND) + 1;
 
     double time = (Srv * Ts) + ((1 - Srv) * Tfavg);
-    BigDecimal Crv = Pmkt.multiply(new BigDecimal(time));
+    BigDecimal Crv = Pmkt.multiply(new BigDecimal(time)).setScale(4, RoundingMode.HALF_UP);
 
     logger.debug("Estimated cost: " + Crv + " for Instance: " + instanceType + " / "
         + zone + " AvailabilityTime: " + availabilityTime + " Bid: " + bid);
@@ -207,7 +212,7 @@ public class MinCostInstanceEstimator {
     List<Ec2Instance> instancesZonesCostList = new ArrayList<>();
 
     for (String instanceType : filteredInstances) {
-      instancesZonesCostList = estimateInstanceZonesCost(availabilityTime, reliabilityLowerBound, instanceType);
+      instancesZonesCostList.addAll(estimateInstanceZonesCost(availabilityTime, reliabilityLowerBound, instanceType));
     }
 
     Collections.sort(instancesZonesCostList); // sort the list ascending
@@ -252,10 +257,11 @@ public class MinCostInstanceEstimator {
 
     List<String> regions = awsEc2InstancePriceFacade.getRegions(instanceType);
     for (String region : regions) { // ondemand
-      BigDecimal cost = estimateInstanceCost(instanceType, region, BigDecimal.ZERO, availabilityTime).setScale(
+      BigDecimal estimatedCost = estimateInstanceCost(instanceType, region, BigDecimal.ZERO, availabilityTime).setScale(
           4, RoundingMode.HALF_UP);
-      instanceZonesCostList.add(new Ec2Instance(instanceType, region, cost, Ec2Instance.INSTANCETYPE.ONDEMAND,
-          awsEc2InstancePriceFacade.getPrice(region, instanceType)));
+      instanceZonesCostList.add(new Ec2Instance(instanceType, region, estimatedCost,
+          awsEc2InstancePriceFacade.getPrice(region, instanceType),
+          Ec2Instance.INSTANCETYPE.ONDEMAND, BigDecimal.ZERO));
     }
 
     List<String> availabilityZones = awsEc2SpotInstanceFacade.getAvailabilityZones(instanceType);
@@ -264,10 +270,9 @@ public class MinCostInstanceEstimator {
       if (bid.compareTo(BigDecimal.ZERO) == 0) { // Instance/zone is deprecated
         continue;
       }
-      BigDecimal estimatedCost = estimateInstanceCost(instanceType, availabilityZone, bid, availabilityTime).setScale(
-          4, RoundingMode.HALF_UP);
+      BigDecimal estimatedCost = estimateInstanceCost(instanceType, availabilityZone, bid, availabilityTime);
       instanceZonesCostList.add(new Ec2Instance(instanceType, availabilityZone, estimatedCost,
-          Ec2Instance.INSTANCETYPE.SPOT, bid));
+          ec2ApiWrapper.getCurrentLinuxSpotPrice(instanceType, availabilityZone), Ec2Instance.INSTANCETYPE.SPOT, bid));
     }
 
     return instanceZonesCostList;
