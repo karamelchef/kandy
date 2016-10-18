@@ -1,12 +1,11 @@
 package se.kth.kandy.ejb.algorithm;
 
-import se.kth.kandy.ejb.algorithm.InstanceFilter;
 import static org.testng.Assert.assertNotNull;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import se.kth.kandy.ejb.factory.EjbFactory;
 import se.kth.kandy.ejb.algorithm.InstanceFilter.ECU;
 import se.kth.kandy.ejb.algorithm.InstanceFilter.STORAGEGB;
+import se.kth.kandy.ejb.factory.EjbFactory;
 
 /**
  *
@@ -23,7 +22,7 @@ public class InstanceFilterTest {
 
   @Test
   public void testFilterEc2InstanceTypes() {
-    assertNotNull(instanceFilter.filterEc2InstanceTypes(ECU.FIXED26, 2f, STORAGEGB.HDD12000));
+    assertNotNull(instanceFilter.filterEc2InstanceTypes(ECU.ALL, 2f, STORAGEGB.ALL));
   }
 
 }

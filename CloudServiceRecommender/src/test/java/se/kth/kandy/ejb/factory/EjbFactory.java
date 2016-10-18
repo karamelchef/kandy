@@ -9,6 +9,7 @@ import se.kth.kandy.ejb.algorithm.MinCostInstanceEstimator;
 import se.kth.kandy.ejb.jpa.AwsEc2SpotInstanceFacade;
 import se.kth.kandy.ejb.jpa.KaramelPhaseStatisticsFacade;
 import se.kth.kandy.ejb.restservice.ClusterCostFacadeREST;
+import se.kth.kandy.experiments.CostEstimationExperiment;
 
 /**
  * Singleton design pattern. Factory for initializing session beans for integration tests
@@ -95,6 +96,16 @@ public class EjbFactory {
     try {
       return (InstanceFilter) container.getContext().
           lookup("java:global/CloudServiceRecommender/InstanceFilter");
+    } catch (NamingException ex) {
+      logger.error("Could not resolve session bean", ex);
+    }
+    return null;
+  }
+
+  public CostEstimationExperiment getCostEstimationExperiment() {
+    try {
+      return (CostEstimationExperiment) container.getContext().
+          lookup("java:global/CloudServiceRecommender/CostEstimationExperiment");
     } catch (NamingException ex) {
       logger.error("Could not resolve session bean", ex);
     }

@@ -241,8 +241,8 @@ public class MinCostInstanceEstimator {
     threadPool.shutdown();
 
     Collections.sort(instancesZonesCostList); // sort the list ascending
-    logger.
-        debug("Filtered Ec2 instances list. Slb: " + reliabilityLowerBound + " AvailabilityTime: " + availabilityTime);
+    logger.debug("Total number of instanceType/zone: " + instancesZonesCostList.size() + " Slb: "
+        + reliabilityLowerBound + " AvailabilityTime: " + availabilityTime);
     for (Ec2Instance instanceCost : instancesZonesCostList) {
       logger.debug(instanceCost);
     }
