@@ -18,8 +18,9 @@ import se.kth.kandy.ejb.jpa.AwsEc2SpotInstanceFacade;
 /**
  * Batch job artifact - fetch the spot instances details from amazon cloud
  *
- * Starts from midnight today, 00:00:00 and makes sampling for 1 hour and then goes back in time for 8 hours and will do
- * the same for past 85 days or last sampling date in database. everyday [23:00-00:00], [15:00-16:00] and [07:00-08:00]
+ * Starts from the past even hour (0,2,4,..22) and make sampling for 1 hour and then goes back in time for STEP_LENGHT
+ * hours and will do the same for past 85 days or last sampling date in database. everyday [23:00-00:00], [21:00-22:00],
+ * [19:00-20:00]
  *
  * @author Hossein
  */
@@ -39,11 +40,11 @@ public class SpotInstanceItemReader extends AbstractItemReader {
   /**
    * use this time (mid night yesterday) to start fetching spot instance prices and goes back in time
    */
-  private Date mStartOfSamplingPeriod;
+  private long mStartOfSamplingPeriod;
   /**
    * The wait time between starting new sampling
    */
-  private static final long STEP_LENGHT = 28800000L;  // 8 hours
+  private static final long STEP_LENGHT = 7200000L;  // 2 hours
   /**
    * Length of each sampling
    */
@@ -74,20 +75,15 @@ public class SpotInstanceItemReader extends AbstractItemReader {
 
     Calendar calStart = new GregorianCalendar();
     calStart.setTime(new Date(now));
+    calStart.set(Calendar.HOUR, 0);
     calStart.set(Calendar.MINUTE, 0);
     calStart.set(Calendar.SECOND, 0);
     calStart.set(Calendar.MILLISECOND, 0);
 
-    calStart.set(Calendar.HOUR_OF_DAY, 16);
-    if (now < calStart.getTimeInMillis()) {
-      calStart.set(Calendar.HOUR_OF_DAY, 8);
-      if (now < calStart.getTimeInMillis()) {
-        calStart.set(Calendar.HOUR_OF_DAY, 0);
-      }
-    }
-    mStartOfSamplingPeriod = calStart.getTime();
+    long mod = (long) ((now - calStart.getTimeInMillis()) % STEP_LENGHT);
 
-    mSamplingTime = mStartOfSamplingPeriod.getTime();
+    mSamplingTime = now - mod;
+    mStartOfSamplingPeriod = mSamplingTime;
     mEndTimeOfSamplingPeriod = mSamplingTime - SAMPLING_PERIOD_LENGHT;
 
     // fetch new data until last sampling date in database otherwise fetch data for past 85 days
@@ -102,7 +98,7 @@ public class SpotInstanceItemReader extends AbstractItemReader {
       logger.debug("Aws Spot instance prices, fetched for region: " + mRegion);
       if (mRegions.hasNext()) {
         mRegion = mRegions.next();
-        mSamplingTime = mStartOfSamplingPeriod.getTime();
+        mSamplingTime = mStartOfSamplingPeriod;
       } else {
         return null; // end of sampling for all regions
       }
