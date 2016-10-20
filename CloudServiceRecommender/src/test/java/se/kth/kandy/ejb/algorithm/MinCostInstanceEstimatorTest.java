@@ -41,7 +41,7 @@ public class MinCostInstanceEstimatorTest {
   @Test
   public void testEstimateTerminationAverageRunTime() {
     double avgTime = minCostInstanceEstimator.estimateTerminationAverageRunTime("r3.xlarge", "us-west-2c",
-        new BigDecimal(0.08).setScale(4, RoundingMode.HALF_UP), 229727000L);
+        new BigDecimal(0.0668).setScale(4, RoundingMode.HALF_UP), 108000000L);
   }
 
   //-------------------------------------------------------------------
@@ -74,8 +74,8 @@ public class MinCostInstanceEstimatorTest {
 
   @Test
   public void testEstimateInstanceCost1() throws ServiceRecommanderException {
-    BigDecimal cost = minCostInstanceEstimator.estimateInstanceCost("d2.8xlarge", "eu-central-1b",
-        new BigDecimal(6.3540).setScale(4, RoundingMode.HALF_UP), 229727000L);
+    BigDecimal cost = minCostInstanceEstimator.estimateInstanceCost("d2.2xlarge", "eu-central-1b",
+        new BigDecimal(0.3).setScale(4, RoundingMode.HALF_UP), 229727000L);
   }
 
   //------------------------------------------------------------------------

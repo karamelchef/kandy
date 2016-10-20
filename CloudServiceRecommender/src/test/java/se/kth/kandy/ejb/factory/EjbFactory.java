@@ -34,11 +34,15 @@ public class EjbFactory {
   private EjbFactory() {
     if (container == null) {
       Properties properties = new Properties();
+
       properties.put("jdbc/bankWorkTestResource", "new://Resource?type=DataSource");
       properties.put("jdbc/bankWorkTestResource.JdbcDriver", "com.mysql.jdbc.Driver");
       properties.put("jdbc/bankWorkTestResource.JdbcUrl", databaseUrl);
       properties.put("jdbc/bankWorkTestResource.UserName", databaseUser);
       properties.put("jdbc/bankWorkTestResource.Password", databasePass);
+      properties.put("myStatelessContainer.maxSize", 0);
+      properties.put("myStatelessContainer.strictPooling", false);
+      //properties.put("myStatelessContainer.accessTimeout", 1800);  //second
 
       container = EJBContainer.createEJBContainer(properties);
     }

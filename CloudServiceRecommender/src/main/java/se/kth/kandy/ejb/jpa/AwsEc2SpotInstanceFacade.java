@@ -2,6 +2,7 @@ package se.kth.kandy.ejb.jpa;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import javax.ejb.Stateless;
@@ -84,6 +85,9 @@ public class AwsEc2SpotInstanceFacade extends AbstractFacade<AwsEc2SpotInstance>
     query.setParameter("instanceType", instanceType);
     query.setParameter("productDescription", "Linux/UNIX");
     query.setParameter("availabilityZone", availabilityZone);
+    if (query.getResultList() == null) {
+      return new ArrayList<>();
+    }
     return (List<AwsEc2SpotInstance>) query.getResultList();
   }
 
@@ -96,6 +100,9 @@ public class AwsEc2SpotInstanceFacade extends AbstractFacade<AwsEc2SpotInstance>
     Query query = getEntityManager().createNamedQuery("AwsEc2SpotInstance.availabilityZone", AwsEc2SpotInstance.class);
     query.setParameter("instanceType", instanceType);
     query.setParameter("productDescription", "Linux/UNIX");
+    if (query.getResultList() == null) {
+      return new ArrayList<>();
+    }
     return (List<String>) query.getResultList();
   }
 }

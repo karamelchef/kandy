@@ -13,8 +13,10 @@ public class InstanceZoneCost {
   protected String InstanceType;
   protected String zone;
   protected long availabilityTime;
-  protected BigDecimal marketHourlyPrice;
+  protected float reliability;
   protected long startTime;
+  protected BigDecimal marketHourlyPrice;
+  protected BigDecimal bid;
 
   protected boolean success;
   protected BigDecimal estimatedCost = BigDecimal.ZERO;
@@ -22,12 +24,14 @@ public class InstanceZoneCost {
   protected BigDecimal percentRelativeError = BigDecimal.ZERO;
 
   public InstanceZoneCost(String InstanceType, String zone, long availabilityTime, BigDecimal marketHourlyPrice,
-      long startTime) {
+      long startTime, float reliability, BigDecimal bid) {
     this.InstanceType = InstanceType;
     this.zone = zone;
     this.availabilityTime = availabilityTime;
     this.marketHourlyPrice = marketHourlyPrice;
     this.startTime = startTime;
+    this.reliability = reliability;
+    this.bid = bid;
   }
 
   /**
@@ -111,12 +115,24 @@ public class InstanceZoneCost {
     return trueCost;
   }
 
+  public float getReliability() {
+    return reliability;
+  }
+
+  public BigDecimal getBid() {
+    return bid;
+  }
+
+  public BigDecimal getPercentRelativeError() {
+    return percentRelativeError;
+  }
+
   @Override
   public String toString() {
-    return "{" + "InstanceType=" + InstanceType + ", zone=" + zone + ", availabilityTime=" + availabilityTime
-        + ", marketHourlyPrice=" + marketHourlyPrice + ", startTime=" + new Date(startTime) + ", success=" + success
-        + ", estimatedCost=" + estimatedCost + ", trueCost=" + trueCost + ", percentRelativeError="
-        + percentRelativeError + '}';
+    return "{" + "i=" + InstanceType + ", z=" + zone + ", Tr=" + availabilityTime + ", slb=" + reliability
+        + ", startTime=" + new Date(startTime) + ", Pmkt=" + marketHourlyPrice + ", bid=" + bid + ", success=" + success
+        + ", estimatedCost=" + estimatedCost + ", trueCost=" + trueCost
+        + ", percentRelativeError=" + percentRelativeError + '}';
   }
 
 }

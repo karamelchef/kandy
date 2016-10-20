@@ -2,17 +2,27 @@ package se.kth.kandy.experiments;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Random;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import org.apache.log4j.Logger;
 import se.kth.kandy.batch.SpotInstanceItemReader;
+import se.kth.kandy.cloud.common.exception.ServiceRecommanderException;
+import se.kth.kandy.ejb.algorithm.InstanceFilter;
 import se.kth.kandy.ejb.algorithm.MinCostInstanceEstimator;
 import se.kth.kandy.ejb.jpa.AwsEc2SpotInstanceFacade;
+import se.kth.kandy.ejb.notify.ServerPushFacade;
 import se.kth.kandy.model.AwsEc2SpotInstance;
 
 /**
@@ -26,37 +36,53 @@ public class CostEstimationExperiment {
   MinCostInstanceEstimator minCostInstanceEstimator;
   @EJB
   private AwsEc2SpotInstanceFacade awsEc2SpotInstanceFacade;
+  @EJB
+  private InstanceFilter instanceFilter;
+  @EJB
+  private ServerPushFacade serverPushFacade;
+
   private static final Logger logger = Logger.getLogger(CostEstimationExperiment.class);
 
   public static final long TEN_DAY_MILISECOND = 864000000L;
   public static final long ONE_HOUR_MILISECOND = 3600000L;
-
-  public void evaluateCostEstimation() {
-
-  }
+  public static final List<Integer> AVAILABILITY_TIME_HOURS = Arrays.asList(3, 12, 24, 60, 100);
+  public static final List<Float> RELIABILITY_LOWER_BOUNDS = Arrays.asList(0.0f, 0.2f, 0.4f, 0.6f, 0.8f, 1.0f);
 
   /**
-   * generate a random availability time in millisecond
+   * Calculates percent relative error for an instance type and zone. It means the difference between the true cost and
+   * estimated cost. It is only for spot instances.
    *
-   * @param maxTrHours
-   * @return availability time in millisecond
-   */
-  protected long getRandomAvailabilityTime(int maxTrHours) {
-    Random random = new Random();
-    long availabilityTime = (random.nextInt(maxTrHours) + 1) * 360 * 1000; // convert to milisecond
-    return availabilityTime;
-  }
-
-  /**
+   * simulates running of 8 instances of the specified InstanceType and Zone every 10 day in the window of past 85 days.
+   * calculates true cost and estimated cost for each of them. and finally percent relative error.
+   *
+   * TrueCost [Success] = Total of (beginning of each instance hour market price) //round up last partial hour
+   *
+   * TrueCost [Failure] = Total of (beginning of each instance hour market price) //omit last partial hour
+   *
+   * EstimatedCost [Success] = Pmkt (at launch time) * ceiling (availabilityTime)
+   *
+   * EstimatedCost [Failure] = Pmkt (at launch time) * termination average runtime
+   *
+   * percent relative Error = (|trueCost - estimatedCost| / trueCost) * 100
    *
    * @param instanceType
    * @param availabilityZone
    * @param bid
+   * @param reliabilityLowerBound
    * @param availabilityTime
    * @return
+   * @throws se.kth.kandy.cloud.common.exception.ServiceRecommanderException
    */
-  public List<InstanceZoneCost> calculateInstanceZoneCostError(String instanceType, String availabilityZone,
-      BigDecimal bid, long availabilityTime) {
+  public List<InstanceZoneCost> calculateInstanceZoneSamplesCostError(String instanceType, String availabilityZone,
+      long availabilityTime, float reliabilityLowerBound) throws ServiceRecommanderException {
+
+    List<InstanceZoneCost> instanceZoneCostList = new ArrayList<>();
+    BigDecimal bid = minCostInstanceEstimator.estimateMinBid(instanceType, availabilityZone, availabilityTime,
+        reliabilityLowerBound);
+
+    if (bid.compareTo(BigDecimal.ZERO) == 0) { //instance zone is deprecated
+      return instanceZoneCostList; // return empty list
+    }
 
     List<AwsEc2SpotInstance> spotPricesList = awsEc2SpotInstanceFacade.
         getSpotInstanceList(instanceType, availabilityZone);
@@ -72,7 +98,6 @@ public class CostEstimationExperiment {
     calStart.set(Calendar.MILLISECOND, 0);
     // start from 85 days ago at 07:00:00
     long sampleInstanceAllocationTime = calStart.getTimeInMillis() - SpotInstanceItemReader.SAMPLING_PERIOD_LENGHT;
-    List<InstanceZoneCost> instanceZoneCostList = new ArrayList<>();
 
     for (int sampleIndex = 0; sampleIndex < 8; sampleIndex++) { //8 samples every 10 day
 
@@ -87,7 +112,7 @@ public class CostEstimationExperiment {
 
           if (instanceZoneCostList.size() == sampleIndex) {
             instanceZoneCostList.add(new InstanceZoneCost(instanceType, availabilityZone, availabilityTime,
-                spotInstance.getPrice(), spotTime));
+                spotInstance.getPrice(), spotTime, reliabilityLowerBound, bid));
             hourlyPrice = spotInstance.getPrice();
           }
 
@@ -136,10 +161,107 @@ public class CostEstimationExperiment {
       }
       sampleInstanceAllocationTime += TEN_DAY_MILISECOND;
     }
+    return instanceZoneCostList;
+  }
+
+  /**
+   * Calculates percent relative error for all availabilityZones of an instance type with different reliability. Only
+   * experiments spot instances.
+   *
+   * @param instanceType
+   * @param availabilityTime
+   * @return
+   * @throws ServiceRecommanderException
+   * @throws java.lang.InterruptedException
+   * @throws java.util.concurrent.ExecutionException
+   */
+  public List<InstanceZoneCost> calculateInstanceZonesCostError(String instanceType, long availabilityTime)
+      throws ServiceRecommanderException, InterruptedException, ExecutionException {
+
+    List<InstanceZoneCost> instanceZoneCostList = new ArrayList<>();
+    List<String> availabilityZones = awsEc2SpotInstanceFacade.getAvailabilityZones(instanceType);
+
+    for (float slb : RELIABILITY_LOWER_BOUNDS) {
+      for (String availabilityZone : availabilityZones) { // spot
+        instanceZoneCostList.addAll(calculateInstanceZoneSamplesCostError(instanceType, availabilityZone,
+            availabilityTime, slb));
+      }
+    }
+
     for (InstanceZoneCost instanceZoneCost : instanceZoneCostList) {
       logger.debug(instanceZoneCost);
     }
     return instanceZoneCostList;
   }
 
+  /**
+   * In fixed availabilityTime, calculates percent relative error for all possible spot (instance,availabilityZone) and
+   * different Slb
+   *
+   * @param availabilityTimeHours
+   * @throws InterruptedException
+   * @throws ExecutionException
+   */
+  public void costEstimationEvaluation(final int availabilityTimeHours) throws Exception {
+
+    List<String> allInstances = instanceFilter.filterEc2InstanceTypes(InstanceFilter.ECU.ALL, 0.0f,
+        InstanceFilter.STORAGEGB.ALL);
+
+    List<InstanceZoneCost> instanceZoneCostList = new ArrayList<>();
+
+    ExecutorService threadPool = Executors.newFixedThreadPool(allInstances.size());
+    Set<Future<List<InstanceZoneCost>>> set = new HashSet<>();
+
+    for (final String instanceType : allInstances) { //assign a thread to each instanceType/zones
+      Callable thread = new Callable() {
+
+        @Override
+        public List<InstanceZoneCost> call() throws Exception {
+          try {
+            logger.debug("Start calculating zones cost for the instace: " + instanceType);
+            return calculateInstanceZonesCostError(instanceType, availabilityTimeHours * 3600 * 1000);
+          } catch (ServiceRecommanderException ex) {
+            logger.error("Fail to estimate zones cost for the instance: " + instanceType);
+            return new ArrayList<>();
+          }
+        }
+      };
+      Future<List<InstanceZoneCost>> future = threadPool.submit(thread);
+      set.add(future);
+    }
+
+    for (Future<List<InstanceZoneCost>> future : set) {
+      //this is synchronous part, calling future.get() waits untill response is ready
+      instanceZoneCostList.addAll(future.get());
+    }
+    threadPool.shutdown();
+
+    BigDecimal percentRelativeErrorList[] = {BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
+      BigDecimal.ZERO, BigDecimal.ZERO};
+    Integer experimentNumberList[] = {0, 0, 0, 0, 0, 0};
+    for (InstanceZoneCost instanceZoneCost : instanceZoneCostList) {
+      if (instanceZoneCost.getTrueCost().compareTo(BigDecimal.ZERO) == 1 // true cost bigger than 0
+          && instanceZoneCost.getPercentRelativeError().compareTo(new BigDecimal(101)) == -1) {
+        // relative error less than 101
+
+        //add all errors for each slb and count number of them
+        int index = RELIABILITY_LOWER_BOUNDS.indexOf(instanceZoneCost.getReliability());
+        percentRelativeErrorList[index]
+            = instanceZoneCost.getPercentRelativeError().add(percentRelativeErrorList[index]);
+        experimentNumberList[index]++;
+      }
+    }
+    for (int j = 0; j < RELIABILITY_LOWER_BOUNDS.size(); j++) {
+      //calculate average percent relative error for each Slb
+      percentRelativeErrorList[j] = percentRelativeErrorList[j].
+          divide(new BigDecimal(experimentNumberList[j]), 2);
+    }
+
+    logger.debug("Total experiments: " + instanceZoneCostList.size() + ", Tr(hours): " + availabilityTimeHours);
+    for (int j = 0; j < RELIABILITY_LOWER_BOUNDS.size(); j++) {
+      logger.debug("Slb: " + RELIABILITY_LOWER_BOUNDS.get(j) + ", RelativeError: " + percentRelativeErrorList[j]);
+    }
+
+    serverPushFacade.pushLog("[ " + new Date() + " ] " + "Cost estimation experiment done !");
+  }
 }

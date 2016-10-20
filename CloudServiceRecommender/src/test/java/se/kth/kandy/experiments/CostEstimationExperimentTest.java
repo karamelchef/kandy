@@ -1,7 +1,5 @@
 package se.kth.kandy.experiments;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import org.apache.log4j.Logger;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -23,9 +21,18 @@ public class CostEstimationExperimentTest {
   }
 
   @Test
-  public void testCalculateInstanceZoneCostError() throws Exception {
-    costEstimationExperiment.calculateInstanceZoneCostError("r3.xlarge", "us-west-2c", new BigDecimal(0.0668).
-        setScale(4, RoundingMode.HALF_UP), 108000000L);
+  public void testCalculateInstanceZoneSamplesCostError() throws Exception {
+    costEstimationExperiment.calculateInstanceZoneSamplesCostError("r3.xlarge", "us-west-2c", 108000000L, 0.7f);
+  }
+
+  @Test
+  public void testCalculateInstanceZonesCostError() throws Exception {
+    costEstimationExperiment.calculateInstanceZonesCostError("r3.xlarge", 108000000L);
+  }
+
+  @Test
+  public void testCostEstimationEvaluation() throws Exception {
+    costEstimationExperiment.costEstimationEvaluation(60);
   }
 
 }
