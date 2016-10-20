@@ -1,5 +1,7 @@
 package se.kth.kandy.experiments;
 
+import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,6 +19,11 @@ import java.util.concurrent.Future;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import org.apache.log4j.Logger;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartUtilities;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.category.DefaultCategoryDataset;
 import se.kth.kandy.batch.SpotInstanceItemReader;
 import se.kth.kandy.cloud.common.exception.ServiceRecommanderException;
 import se.kth.kandy.ejb.algorithm.InstanceFilter;
@@ -206,13 +213,15 @@ public class CostEstimationExperiment {
 
     List<String> allInstances = instanceFilter.filterEc2InstanceTypes(InstanceFilter.ECU.ALL, 0.0f,
         InstanceFilter.STORAGEGB.ALL);
+    //List<String> allInstances = Arrays.asList("r3.xlarge");
 
     List<InstanceZoneCost> instanceZoneCostList = new ArrayList<>();
 
     ExecutorService threadPool = Executors.newFixedThreadPool(allInstances.size());
     Set<Future<List<InstanceZoneCost>>> set = new HashSet<>();
 
-    for (final String instanceType : allInstances) { //assign a thread to each instanceType/zones
+    for (int k = 0; k < allInstances.size();) { //assign a thread to each instanceType/zones
+      final String instanceType = allInstances.get(k);
       Callable thread = new Callable() {
 
         @Override
@@ -221,13 +230,14 @@ public class CostEstimationExperiment {
             logger.debug("Start calculating zones cost for the instace: " + instanceType);
             return calculateInstanceZonesCostError(instanceType, availabilityTimeHours * 3600 * 1000);
           } catch (ServiceRecommanderException ex) {
-            logger.error("Fail to estimate zones cost for the instance: " + instanceType);
+            logger.error(ex);
             return new ArrayList<>();
           }
         }
       };
       Future<List<InstanceZoneCost>> future = threadPool.submit(thread);
       set.add(future);
+      k += 2;  //experiment on half of the instance types
     }
 
     for (Future<List<InstanceZoneCost>> future : set) {
@@ -235,6 +245,8 @@ public class CostEstimationExperiment {
       instanceZoneCostList.addAll(future.get());
     }
     threadPool.shutdown();
+
+    logger.debug("Start calculating percent relative error");
 
     BigDecimal percentRelativeErrorList[] = {BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
       BigDecimal.ZERO, BigDecimal.ZERO};
@@ -261,7 +273,36 @@ public class CostEstimationExperiment {
     for (int j = 0; j < RELIABILITY_LOWER_BOUNDS.size(); j++) {
       logger.debug("Slb: " + RELIABILITY_LOWER_BOUNDS.get(j) + ", RelativeError: " + percentRelativeErrorList[j]);
     }
+    jpgLineChartCreator(percentRelativeErrorList, RELIABILITY_LOWER_BOUNDS);
+  }
 
-    serverPushFacade.pushLog("[ " + new Date() + " ] " + "Cost estimation experiment done !");
+  /**
+   * create line chart as JPEG file
+   *
+   * on Linux jpeg file is created under /payara41/glassfish/domains/domain1/config
+   *
+   * @param relativeErrors
+   * @param reliabilities
+   * @throws IOException
+   */
+  protected void jpgLineChartCreator(BigDecimal[] relativeErrors, List<Float> reliabilities) throws IOException {
+
+    DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+    for (int j = 0; j < reliabilities.size(); j++) {
+      dataset.addValue(relativeErrors[j], "", reliabilities.get(j));
+    }
+    JFreeChart lineChartObject = ChartFactory.createLineChart(
+        "Percent relative error of CostEstimation",
+        "Reliability Lower Bound (Slb)", "Percent relative Error",
+        dataset, PlotOrientation.VERTICAL,
+        true, true, false);
+
+    int width = 640; /* Width of the image */
+
+    int height = 480; /* Height of the image */
+
+    File lineChart = new File("costRelativeError.jpeg");
+    ChartUtilities.saveChartAsJPEG(lineChart, lineChartObject, width, height);
+    logger.debug("costRelativeError_" + new Date() + ".jpeg created");
   }
 }

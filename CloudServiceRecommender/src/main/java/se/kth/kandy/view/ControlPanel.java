@@ -4,6 +4,7 @@ import java.io.Serializable;
 import javax.ejb.EJB;
 import javax.enterprise.context.SessionScoped;
 import javax.inject.Named;
+import org.apache.log4j.Logger;
 import se.kth.kandy.ejb.batchcontroller.AwsEc2PriceScheduledBatchFacade;
 import se.kth.kandy.ejb.jpa.KaramelStatisticsUtilFacade;
 import se.kth.kandy.experiments.CostEstimationExperiment;
@@ -16,6 +17,8 @@ import se.kth.kandy.experiments.CostEstimationExperiment;
 @Named("controlPanel")
 @SessionScoped
 public class ControlPanel implements Serializable {
+
+  private static final Logger logger = Logger.getLogger(ControlPanel.class);
 
   @EJB
   private KaramelStatisticsUtilFacade karamelStatisticsUtilFacade;
@@ -46,9 +49,20 @@ public class ControlPanel implements Serializable {
   }
 
   public void runExperiment() throws Exception {
-    if (experimentId.equalsIgnoreCase("1")) {
-      costEstimationExperiment.costEstimationEvaluation(availabilityTimeHours);
-    }
+
+    new Runnable() { // make the call asynchronous, it is time consuming
+
+      @Override
+      public void run() {
+        try {
+          if (experimentId.equalsIgnoreCase("1")) {
+            costEstimationExperiment.costEstimationEvaluation(availabilityTimeHours);
+          }
+        } catch (Exception ex) {
+          logger.error(ex);
+        }
+      }
+    }.run();
   }
 
   public ControlPanel() {

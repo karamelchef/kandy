@@ -62,7 +62,7 @@ public class MinCostInstanceEstimatorTest {
 
   @Test
   public void testEstimateMinBid() throws ServiceRecommanderException {
-    BigDecimal bid = minCostInstanceEstimator.estimateMinBid("d2.8xlarge", "us-east-1b", 229727000L, (float) 0.8);
+    BigDecimal bid = minCostInstanceEstimator.estimateMinBid("g2.2xlarge", "us-west-1a", 43200000L, (float) 0.8);
   }
 
   //---------------------------------------------------------------------

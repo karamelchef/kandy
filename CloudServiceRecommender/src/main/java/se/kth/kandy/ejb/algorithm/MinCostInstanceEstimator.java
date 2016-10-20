@@ -106,12 +106,21 @@ public class MinCostInstanceEstimator {
     // starts the bid from current spot market price
     BigDecimal bid = ec2ApiWrapper.getCurrentLinuxSpotPrice(instanceType, availabilityZone);
 
+    String bidIncrement;  // to improve the speed
+    if (reliabilityLowerBound == 1) {
+      bidIncrement = "0.5";
+    } else if (reliabilityLowerBound >= 0.8f) {
+      bidIncrement = "0.2";
+    } else {
+      bidIncrement = "0.1";
+    }
+
     if (bid.compareTo(BigDecimal.ZERO) == 1) {
       //bid should be more than 0, otherwise this instance/zone is not valid any more
       float reliability = estimateSpotReliability(instanceType, availabilityZone, bid, availabilityTime);
       if (reliability != -1) {
         while (reliability < reliabilityLowerBound) {
-          bid = bid.add(new BigDecimal("0.08")); // increase the bid in $
+          bid = bid.add(new BigDecimal(bidIncrement)); // increase the bid in $
           reliability = estimateSpotReliability(instanceType, availabilityZone, bid, availabilityTime);
         }
       }

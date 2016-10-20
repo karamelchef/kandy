@@ -9,6 +9,7 @@ import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import org.apache.log4j.Logger;
 import se.kth.kandy.ejb.AbstractFacade;
 import se.kth.kandy.model.AwsEc2SpotInstance;
 
@@ -22,6 +23,8 @@ public class AwsEc2SpotInstanceFacade extends AbstractFacade<AwsEc2SpotInstance>
 
   @PersistenceContext(unitName = "ServiceRecommender-ejb_PU")
   private EntityManager em;
+
+  private static final Logger logger = Logger.getLogger(AwsEc2SpotInstanceFacade.class);
 
   @Override
   protected EntityManager getEntityManager() {
@@ -85,10 +88,14 @@ public class AwsEc2SpotInstanceFacade extends AbstractFacade<AwsEc2SpotInstance>
     query.setParameter("instanceType", instanceType);
     query.setParameter("productDescription", "Linux/UNIX");
     query.setParameter("availabilityZone", availabilityZone);
-    if (query.getResultList() == null) {
-      return new ArrayList<>();
+    List<AwsEc2SpotInstance> results;
+    try {
+      results = (List<AwsEc2SpotInstance>) query.getResultList();
+    } catch (NullPointerException e) {
+      logger.error("Null retriving spotList for: " + instanceType + " / " + availabilityZone);
+      results = new ArrayList<>();
     }
-    return (List<AwsEc2SpotInstance>) query.getResultList();
+    return results;
   }
 
   /**
@@ -100,9 +107,13 @@ public class AwsEc2SpotInstanceFacade extends AbstractFacade<AwsEc2SpotInstance>
     Query query = getEntityManager().createNamedQuery("AwsEc2SpotInstance.availabilityZone", AwsEc2SpotInstance.class);
     query.setParameter("instanceType", instanceType);
     query.setParameter("productDescription", "Linux/UNIX");
-    if (query.getResultList() == null) {
-      return new ArrayList<>();
+    List<String> results;
+    try {
+      results = (List<String>) query.getResultList();
+    } catch (NullPointerException e) {
+      logger.error("Null retriving availability zones for: " + instanceType);
+      results = new ArrayList<>();
     }
-    return (List<String>) query.getResultList();
+    return results;
   }
 }

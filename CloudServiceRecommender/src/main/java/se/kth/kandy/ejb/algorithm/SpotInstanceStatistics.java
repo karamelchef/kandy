@@ -53,7 +53,7 @@ public class SpotInstanceStatistics {
     // start from 85 days ago at 07:00:00
     long startSamplingTime = calStart.getTimeInMillis() - SpotInstanceItemReader.SAMPLING_PERIOD_LENGHT;
     calStart.setTimeInMillis(startSamplingTime);
-    logger.debug("First sampling date: " + calStart.getTime().toString());
+    logger.trace("First sampling date: " + calStart.getTime().toString());
 
     List<Long> instancesAvailTimeList = new ArrayList<>();
 
@@ -88,12 +88,12 @@ public class SpotInstanceStatistics {
         }
       }
     }
-    logger.debug("Number of sampling dates: " + instancesAvailTimeList.size());
-    logger.debug("Total number of spot instance under experiment: " + spotNumber);
+    logger.trace("Number of sampling dates: " + instancesAvailTimeList.size());
+    logger.trace("Total number of spot instance under experiment: " + spotNumber);
     calStart.setTimeInMillis(startSamplingTime + ((instancesAvailTimeList.size() - 1) * ONE_DAY_MILISECOND));
-    logger.debug("Last sampling date: " + calStart.getTime().toString());
+    logger.trace("Last sampling date: " + calStart.getTime().toString());
 
-    logger.debug(instancesAvailTimeList);
+    logger.trace(instancesAvailTimeList);
 
     // sort availability times accending
     Collections.sort(instancesAvailTimeList);
