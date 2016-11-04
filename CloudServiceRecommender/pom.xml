@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>se.kth</groupId>
@@ -13,6 +15,7 @@
     <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <jclouds.version>1.9.0</jclouds.version>
+    <karamel.version>0.3</karamel.version>
   </properties>
 
   <developers>
@@ -46,6 +49,17 @@
       <artifactId>openejb-core</artifactId>
       <version>7.0.0-SNAPSHOT</version>
       <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>se.kth.karamel</groupId>
+      <artifactId>karamel-common</artifactId>
+      <version>${karamel.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>se.kth.karamel</groupId>
+      <artifactId>karamel-core</artifactId>
+      <version>${karamel.version}</version>
     </dependency>
 
     <dependency>
@@ -144,16 +158,6 @@
       <type>jar</type>
     </dependency>
     <dependency>
-      <groupId>se.kth.karamel</groupId>
-      <artifactId>karamel-common</artifactId>
-      <version>0.2</version>
-    </dependency>
-    <dependency>
-      <groupId>se.kth</groupId>
-      <artifactId>karamel-core</artifactId>
-      <version>0.2</version>
-    </dependency>
-    <dependency>
       <groupId>org.yaml</groupId>
       <artifactId>snakeyaml</artifactId>
       <version>1.11</version>
@@ -236,7 +240,6 @@
       <id>prime-repo</id>
       <name>PrimeFaces Maven Repository</name>
       <url>http://repository.primefaces.org</url>
-      <layout>default</layout>
     </repository>
   </repositories>
 

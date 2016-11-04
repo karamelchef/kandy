@@ -301,8 +301,9 @@ public class CostEstimationExperiment {
 
     int height = 480; /* Height of the image */
 
-    File lineChart = new File("costRelativeError.jpeg");
+    String fileName = "costRelativeError.jpeg";
+    File lineChart = new File(fileName);
     ChartUtilities.saveChartAsJPEG(lineChart, lineChartObject, width, height);
-    logger.debug("costRelativeError_" + new Date() + ".jpeg created");
+    logger.debug(fileName + " created");
   }
 }

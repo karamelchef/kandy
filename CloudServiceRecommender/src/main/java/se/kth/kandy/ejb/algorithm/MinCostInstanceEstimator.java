@@ -64,7 +64,7 @@ public class MinCostInstanceEstimator {
       long availabilityTime) {
 
     List<Long> instancesAvailTimeList = spotInstanceStatistics.getSpotSamplesAvailabilityTime(instanceType,
-        availabilityZone, bid);
+        availabilityZone, bid, availabilityTime); // availability time is just for creating the chart
 
     float probabilityOfSuccess = 1; // if there would be no termination
     if (instancesAvailTimeList.isEmpty()) {
@@ -145,7 +145,8 @@ public class MinCostInstanceEstimator {
       long availabilityTime) {
 
     List<Long> instancesAvailTimeList = spotInstanceStatistics.getSpotSamplesAvailabilityTime(instanceType,
-        availabilityZone, bid);  // ascending list of samples availability time
+        availabilityZone, bid, availabilityTime);  // ascending list of samples availability time
+    // availability time is just for creating the chart
 
     long totalRunTimeHours = 0;
     int i = 0;

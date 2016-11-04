@@ -195,6 +195,26 @@ public class ClusterCost {
       @Override
       public void prepareToStart(Task task) throws KaramelException {
       }
+
+      @Override
+      public void killMe(Task task) throws KaramelException {
+        throw new UnsupportedOperationException("Not supported yet.");
+      }
+
+      @Override
+      public void retryMe(Task task) throws KaramelException {
+        throw new UnsupportedOperationException("Not supported yet.");
+      }
+
+      @Override
+      public void skipMe(Task task) throws KaramelException {
+        throw new UnsupportedOperationException("Not supported yet.");
+      }
+
+      @Override
+      public void terminate(Task task) throws KaramelException {
+        throw new UnsupportedOperationException("Not supported yet.");
+      }
     };
     return dummyTaskSubmitter;
   }
@@ -213,7 +233,8 @@ public class ClusterCost {
     machines = new Machines();
     JsonCluster jsonCluster = ClusterDefinitionService.yamlToJsonObject(clusterYaml);
     ClusterRuntime dummyClusterRuntime = MockingUtil.dummyRuntime(jsonCluster);
-    Map<String, JsonObject> chefJsons = ChefJsonGenerator.generateClusterChefJsons(jsonCluster, dummyClusterRuntime);
+    Map<String, JsonObject> chefJsons = ChefJsonGenerator.generateClusterChefJsonsForInstallation(jsonCluster,
+        dummyClusterRuntime);
     ClusterStats clusterStats = new ClusterStats();
     TaskSubmitter dummyTaskSubmitter = getTaskSubmitter();
 

@@ -28,7 +28,7 @@ public class MinCostInstanceEstimatorTest {
   @Test
   public void testEstimateSpotReliability() {
     float reliability = minCostInstanceEstimator.estimateSpotReliability("r3.xlarge", "us-west-2c",
-        new BigDecimal(0.08).setScale(4, RoundingMode.HALF_UP), 229727000L);
+        new BigDecimal(0.15).setScale(4, RoundingMode.HALF_UP), 108000000L);
   }
 
   @Test
@@ -41,7 +41,7 @@ public class MinCostInstanceEstimatorTest {
   @Test
   public void testEstimateTerminationAverageRunTime() {
     double avgTime = minCostInstanceEstimator.estimateTerminationAverageRunTime("r3.xlarge", "us-west-2c",
-        new BigDecimal(0.0668).setScale(4, RoundingMode.HALF_UP), 108000000L);
+        new BigDecimal(0.15).setScale(4, RoundingMode.HALF_UP), 108000000L);
   }
 
   //-------------------------------------------------------------------
@@ -57,7 +57,7 @@ public class MinCostInstanceEstimatorTest {
 
   @Test
   public void testEstimateMinBid1() throws ServiceRecommanderException {
-    BigDecimal bid = minCostInstanceEstimator.estimateMinBid("r3.xlarge", "us-west-2c", 108000000L, (float) 0.4);
+    BigDecimal bid = minCostInstanceEstimator.estimateMinBid("r3.xlarge", "us-west-2c", 108000000L, (float) 0.7);
   }
 
   @Test
@@ -69,7 +69,7 @@ public class MinCostInstanceEstimatorTest {
   @Test
   public void testEstimateInstanceCost() throws ServiceRecommanderException {
     BigDecimal cost = minCostInstanceEstimator.estimateInstanceCost("r3.xlarge", "us-west-2c",
-        new BigDecimal(0.0994).setScale(4, RoundingMode.HALF_UP), 229727000L);
+        new BigDecimal(0.15).setScale(4, RoundingMode.HALF_UP), 108000000L);
   }
 
   @Test
