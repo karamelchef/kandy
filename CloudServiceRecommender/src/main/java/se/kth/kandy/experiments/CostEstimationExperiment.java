@@ -27,7 +27,7 @@ import org.jfree.data.category.DefaultCategoryDataset;
 import se.kth.kandy.batch.SpotInstanceItemReader;
 import se.kth.kandy.cloud.common.exception.ServiceRecommanderException;
 import se.kth.kandy.ejb.algorithm.InstanceFilter;
-import se.kth.kandy.ejb.algorithm.MinCostInstanceEstimator;
+import se.kth.kandy.ejb.algorithm.MaxProfitInstanceEstimator;
 import se.kth.kandy.ejb.jpa.AwsEc2SpotInstanceFacade;
 import se.kth.kandy.ejb.notify.ServerPushFacade;
 import se.kth.kandy.model.AwsEc2SpotInstance;
@@ -40,7 +40,7 @@ import se.kth.kandy.model.AwsEc2SpotInstance;
 public class CostEstimationExperiment {
 
   @EJB
-  MinCostInstanceEstimator minCostInstanceEstimator;
+  MaxProfitInstanceEstimator minCostInstanceEstimator;
   @EJB
   private AwsEc2SpotInstanceFacade awsEc2SpotInstanceFacade;
   @EJB

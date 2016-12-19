@@ -12,7 +12,7 @@ import org.apache.log4j.Logger;
 import se.kth.kandy.cloud.common.exception.ServiceRecommanderException;
 import se.kth.kandy.ejb.algorithm.ClusterCost;
 import se.kth.kandy.ejb.algorithm.Ec2Instance;
-import se.kth.kandy.ejb.algorithm.MinCostInstanceEstimator;
+import se.kth.kandy.ejb.algorithm.MaxProfitInstanceEstimator;
 import se.kth.kandy.json.cost.ClusterTimePrice;
 import se.kth.karamel.common.exception.KaramelException;
 
@@ -30,7 +30,7 @@ public class ClusterCostFacadeREST {
   @EJB
   private ClusterCost clusterCost;
   @EJB
-  private MinCostInstanceEstimator minCostInstanceEstimator;
+  private MaxProfitInstanceEstimator minCostInstanceEstimator;
 
   private static final Logger logger = Logger.getLogger(ClusterCostFacadeREST.class);
 
@@ -49,7 +49,7 @@ public class ClusterCostFacadeREST {
   @Produces({MediaType.APPLICATION_JSON})
   public List<Ec2Instance> findAllInstancesZonesCost(InstanceSpecification instanceSpecification)
       throws Exception {
-    return minCostInstanceEstimator.findAllInstancesZonesCost(
+    return minCostInstanceEstimator.findAllInstancesZonesEstimatedProfit(
         instanceSpecification.getAvailabilityTime(),
         instanceSpecification.getReliabilityLowerBound(),
         instanceSpecification.getMinECU(),

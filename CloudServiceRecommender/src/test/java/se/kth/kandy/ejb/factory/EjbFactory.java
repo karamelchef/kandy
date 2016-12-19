@@ -5,7 +5,7 @@ import javax.ejb.embeddable.EJBContainer;
 import javax.naming.NamingException;
 import org.apache.log4j.Logger;
 import se.kth.kandy.ejb.algorithm.InstanceFilter;
-import se.kth.kandy.ejb.algorithm.MinCostInstanceEstimator;
+import se.kth.kandy.ejb.algorithm.MaxProfitInstanceEstimator;
 import se.kth.kandy.ejb.jpa.AwsEc2SpotInstanceFacade;
 import se.kth.kandy.ejb.jpa.KaramelPhaseStatisticsFacade;
 import se.kth.kandy.ejb.restservice.ClusterCostFacadeREST;
@@ -76,10 +76,10 @@ public class EjbFactory {
     return null;
   }
 
-  public MinCostInstanceEstimator getMinCostInstanceEstimator() {
+  public MaxProfitInstanceEstimator getMaxProfitInstanceEstimator() {
     try {
-      return (MinCostInstanceEstimator) container.getContext().lookup(
-          "java:global/CloudServiceRecommender/MinCostInstanceEstimator");
+      return (MaxProfitInstanceEstimator) container.getContext().lookup(
+          "java:global/CloudServiceRecommender/MaxProfitInstanceEstimator");
     } catch (NamingException ex) {
       logger.error("Could not resolve session bean", ex);
     }

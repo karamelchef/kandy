@@ -8,4 +8,6 @@ dependency-reduced-pom.xml
 buildNumber.properties
 CloudServiceRecommender/nbactions.xml
 CloudServiceRecommender/nb-configuration.xml
+CloudServiceRecommender/*.jpeg
+
 

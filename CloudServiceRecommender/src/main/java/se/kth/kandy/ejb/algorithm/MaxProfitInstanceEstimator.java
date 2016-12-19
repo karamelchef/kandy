@@ -27,9 +27,9 @@ import se.kth.kandy.ejb.jpa.AwsEc2SpotInstanceFacade;
  * @author Hossein
  */
 @Stateless
-public class MinCostInstanceEstimator {
+public class MaxProfitInstanceEstimator {
 
-  private static final Logger logger = Logger.getLogger(MinCostInstanceEstimator.class);
+  private static final Logger logger = Logger.getLogger(MaxProfitInstanceEstimator.class);
   private static final long ONE_HOUR_MILISECOND = 3600000;
 
   @EJB
@@ -43,7 +43,7 @@ public class MinCostInstanceEstimator {
 
   private Ec2ApiWrapper ec2ApiWrapper;
 
-  public MinCostInstanceEstimator() throws ServiceRecommanderException {
+  public MaxProfitInstanceEstimator() throws ServiceRecommanderException {
     this.ec2ApiWrapper = Ec2ApiWrapper.getInstance();
   }
 
@@ -146,8 +146,8 @@ public class MinCostInstanceEstimator {
 
     List<Long> instancesAvailTimeList = spotInstanceStatistics.getSpotSamplesAvailabilityTime(instanceType,
         availabilityZone, bid, availabilityTime);  // ascending list of samples availability time
-    // availability time is just for creating the chart
 
+    // availability time is just for creating the chart
     long totalRunTimeHours = 0;
     int i = 0;
     for (; (i < instancesAvailTimeList.size()) && (instancesAvailTimeList.get(i) < availabilityTime); i++) {
@@ -164,15 +164,15 @@ public class MinCostInstanceEstimator {
   }
 
   /**
-   * Estimates an instance cost (Ondemand/spot), based on the specified parameters.
+   * Estimates an instance profit (Ondemand/spot), based on the specified parameters.
    *
    * In case of spot Instance it takes in to consideration both success and failure. If instance is ondemand, bid=0,
    * Srv=1, Pmkt should be fetched from database
    *
-   * this is not the true cost, but estimated cost to calculate the profitability of an instance in satisfying a
+   * this is not the true profit, but estimated profit which shows the profitability of an instance in satisfying a
    * request.
    *
-   * Estimated Crv = Pmkt * { Srv * ceiling(Tr) + (1-Srv) * floor(Tfavg) }
+   * Estimated Profit = Pmkt * { Srv * ceiling(Tr) + (1-Srv) * floor(Tfavg) }
    *
    * @param instanceType
    * @param zone - Region in case of Ondemand or AvailabilityZone in case of spot
@@ -181,7 +181,7 @@ public class MinCostInstanceEstimator {
    * @return instance cost in dollar
    * @throws ServiceRecommanderException
    */
-  public BigDecimal estimateInstanceCost(String instanceType, String zone, BigDecimal bid,
+  public BigDecimal estimateInstanceProfit(String instanceType, String zone, BigDecimal bid,
       long availabilityTime) throws ServiceRecommanderException {
 
     BigDecimal Pmkt;
@@ -201,17 +201,17 @@ public class MinCostInstanceEstimator {
     long Ts = (availabilityTime / ONE_HOUR_MILISECOND) + 1;
 
     double time = (Srv * Ts) + ((1 - Srv) * Tfavg);
-    BigDecimal Crv = Pmkt.multiply(new BigDecimal(time)).setScale(4, RoundingMode.HALF_UP);
+    BigDecimal EPrv = Pmkt.multiply(new BigDecimal(time)).setScale(4, RoundingMode.HALF_UP);
 
-    logger.debug("Estimated cost: " + Crv + " for Instance: " + instanceType + " / "
+    logger.debug("Estimated Profit: " + EPrv + " for Instance: " + instanceType + " / "
         + zone + " AvailabilityTime: " + availabilityTime + " Bid: " + bid);
-    return Crv;
+    return EPrv;
   }
 
   /**
    * Filter out EC2 instances with minimum requirement of ECU, memory and storage. For both spot and On-demand type of
-   * the instance goes through all available regions and availability zones, calculates the estimated cost regarding the
-   * specified availabilityTime and reliabilityLowerBound, and returns the list sorted ascending of instances.
+   * the instance goes through all available regions and availability zones, calculates the estimated profit regarding
+   * the specified availabilityTime and reliabilityLowerBound, and returns the list sorted ascending of instances.
    *
    * This function uses thread pool. assign a thread to each instanceType and then collect results from all threads and
    * sort.
@@ -221,13 +221,13 @@ public class MinCostInstanceEstimator {
    * @param minECU
    * @param minMemoryGB
    * @param minStorage
-   * @return ascending sorted list of estimated cost of all filtered instances and their possible zones
+   * @return ascending sorted list of estimated profit of all filtered instances and their possible zones
    *
    * @throws se.kth.kandy.cloud.common.exception.ServiceRecommanderException
    * @throws java.lang.InterruptedException
    * @throws java.util.concurrent.ExecutionException
    */
-  public List<Ec2Instance> findAllInstancesZonesCost(long availabilityTime, float reliabilityLowerBound,
+  public List<Ec2Instance> findAllInstancesZonesEstimatedProfit(long availabilityTime, float reliabilityLowerBound,
       InstanceFilter.ECU minECU, float minMemoryGB, InstanceFilter.STORAGEGB minStorage)
       throws ServiceRecommanderException, InterruptedException, ExecutionException {
 
@@ -238,7 +238,7 @@ public class MinCostInstanceEstimator {
     Set<Future<List<Ec2Instance>>> set = new HashSet<>();
 
     for (String instanceType : filteredInstances) { //assign a thread to each instanceType/zones
-      Callable instanceZonesCostThread = new InstanceZonesCostThread(availabilityTime, reliabilityLowerBound,
+      Callable instanceZonesCostThread = new InstanceZonesEstimatedProfitThread(availabilityTime, reliabilityLowerBound,
           instanceType, this);
       Future<List<Ec2Instance>> future = threadPool.submit(instanceZonesCostThread);
       set.add(future);
@@ -261,39 +261,39 @@ public class MinCostInstanceEstimator {
 
   /**
    * For both spot and On-demand type of the instance goes through all available regions and availability zones,
-   * calculates the estimated cost regarding the specified availabilityTime and reliabilityLowerBound, and returns the
-   * list sorted ascending of instance cost.
+   * calculates the estimated profit regarding the specified availabilityTime and reliabilityLowerBound, and returns the
+   * list sorted ascending of instance profit.
    *
    * @param availabilityTime
    * @param reliabilityLowerBound
    * @param instanceType
-   * @return ascending sorted list of estimated cost of the instance and all possible zones
+   * @return ascending sorted list of estimated profit of the instance and all possible zones
    * @throws ServiceRecommanderException
    */
-  public List<Ec2Instance> findInstanceZonesCost(long availabilityTime, float reliabilityLowerBound,
+  public List<Ec2Instance> findInstanceZonesEstimatedProfit(long availabilityTime, float reliabilityLowerBound,
       String instanceType) throws ServiceRecommanderException {
 
-    List<Ec2Instance> instanceZonesCostList = estimateInstanceZonesCost(availabilityTime, reliabilityLowerBound,
-        instanceType);
+    List<Ec2Instance> instanceZonesEPList = estimateInstanceZonesProfit(availabilityTime,
+        reliabilityLowerBound, instanceType);
 
     logger.debug("Filtered Ec2 instances list. Slb: " + reliabilityLowerBound
         + " AvailabilityTime: " + availabilityTime);
-    for (Ec2Instance instanceCost : instanceZonesCostList) {
+    for (Ec2Instance instanceCost : instanceZonesEPList) {
       logger.debug(instanceCost);
     }
-    return instanceZonesCostList;
+    return instanceZonesEPList;
   }
 
-  public List<Ec2Instance> estimateInstanceZonesCost(long availabilityTime, float reliabilityLowerBound,
+  public List<Ec2Instance> estimateInstanceZonesProfit(long availabilityTime, float reliabilityLowerBound,
       String instanceType) throws ServiceRecommanderException {
 
-    List<Ec2Instance> instanceZonesCostList = new ArrayList<>();
+    List<Ec2Instance> instanceZonesEPList = new ArrayList<>();
 
     List<String> regions = awsEc2InstancePriceFacade.getRegions(instanceType);
     for (String region : regions) { // ondemand
-      BigDecimal estimatedCost = estimateInstanceCost(instanceType, region, BigDecimal.ZERO, availabilityTime).setScale(
-          4, RoundingMode.HALF_UP);
-      instanceZonesCostList.add(new Ec2Instance(instanceType, region, estimatedCost,
+      BigDecimal estimatedProfit = estimateInstanceProfit(instanceType, region, BigDecimal.ZERO, availabilityTime).
+          setScale(4, RoundingMode.HALF_UP);
+      instanceZonesEPList.add(new Ec2Instance(instanceType, region, estimatedProfit,
           awsEc2InstancePriceFacade.getPrice(region, instanceType),
           Ec2Instance.INSTANCETYPE.ONDEMAND, BigDecimal.ZERO));
     }
@@ -304,13 +304,13 @@ public class MinCostInstanceEstimator {
       if (bid.compareTo(BigDecimal.ZERO) == 0) { // Instance/zone is deprecated
         continue;
       }
-      BigDecimal estimatedCost = estimateInstanceCost(instanceType, availabilityZone, bid, availabilityTime);
-      instanceZonesCostList.add(new Ec2Instance(instanceType, availabilityZone, estimatedCost,
+      BigDecimal estimatedProfit = estimateInstanceProfit(instanceType, availabilityZone, bid, availabilityTime);
+      instanceZonesEPList.add(new Ec2Instance(instanceType, availabilityZone, estimatedProfit,
           ec2ApiWrapper.getCurrentLinuxSpotPrice(instanceType, availabilityZone), Ec2Instance.INSTANCETYPE.SPOT, bid));
     }
 
-    Collections.sort(instanceZonesCostList); // sort the list ascending
-    return instanceZonesCostList;
+    Collections.sort(instanceZonesEPList); // sort the list ascending
+    return instanceZonesEPList;
   }
 
 }
