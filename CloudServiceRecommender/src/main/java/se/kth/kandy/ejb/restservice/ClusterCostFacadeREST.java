@@ -47,7 +47,7 @@ public class ClusterCostFacadeREST {
   @Path("profitinstance")
   @Consumes({MediaType.APPLICATION_JSON})
   @Produces({MediaType.APPLICATION_JSON})
-  public List<Ec2Instance> findAllInstancesZonesCost(InstanceSpecification instanceSpecification)
+  public List<Ec2Instance> findAllInstancesZonesProfit(InstanceSpecification instanceSpecification)
       throws Exception {
     return minCostInstanceEstimator.findAllInstancesZonesEstimatedProfit(
         instanceSpecification.getAvailabilityTime(),
