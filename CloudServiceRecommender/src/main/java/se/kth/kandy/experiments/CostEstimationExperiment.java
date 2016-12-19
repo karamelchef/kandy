@@ -40,7 +40,7 @@ import se.kth.kandy.model.AwsEc2SpotInstance;
 public class CostEstimationExperiment {
 
   @EJB
-  MaxProfitInstanceEstimator minCostInstanceEstimator;
+  MaxProfitInstanceEstimator maxProfitInstanceEstimator;
   @EJB
   private AwsEc2SpotInstanceFacade awsEc2SpotInstanceFacade;
   @EJB
@@ -52,7 +52,6 @@ public class CostEstimationExperiment {
 
   public static final long TEN_DAY_MILISECOND = 864000000L;
   public static final long ONE_HOUR_MILISECOND = 3600000L;
-  public static final List<Integer> AVAILABILITY_TIME_HOURS = Arrays.asList(3, 12, 24, 60, 100);
   public static final List<Float> RELIABILITY_LOWER_BOUNDS = Arrays.asList(0.0f, 0.2f, 0.4f, 0.6f, 0.8f, 1.0f);
 
   /**
@@ -84,7 +83,7 @@ public class CostEstimationExperiment {
       long availabilityTime, float reliabilityLowerBound) throws ServiceRecommanderException {
 
     List<InstanceZoneCost> instanceZoneCostList = new ArrayList<>();
-    BigDecimal bid = minCostInstanceEstimator.estimateMinBid(instanceType, availabilityZone, availabilityTime,
+    BigDecimal bid = maxProfitInstanceEstimator.estimateMinBid(instanceType, availabilityZone, availabilityTime,
         reliabilityLowerBound);
 
     if (bid.compareTo(BigDecimal.ZERO) == 0) { //instance zone is deprecated
@@ -94,7 +93,7 @@ public class CostEstimationExperiment {
     List<AwsEc2SpotInstance> spotPricesList = awsEc2SpotInstanceFacade.
         getSpotInstanceList(instanceType, availabilityZone);
 
-    double terminationAverageTime = minCostInstanceEstimator.estimateTerminationAverageRunTime(instanceType,
+    double terminationAverageTime = maxProfitInstanceEstimator.estimateTerminationAverageRunTime(instanceType,
         availabilityZone, bid, availabilityTime);
 
     Calendar calStart = new GregorianCalendar();

@@ -232,7 +232,7 @@ public class MaxProfitInstanceEstimator {
       throws ServiceRecommanderException, InterruptedException, ExecutionException {
 
     List<String> filteredInstances = instanceFilter.filterEc2InstanceTypes(minECU, minMemoryGB, minStorage);
-    List<Ec2Instance> instancesZonesCostList = new ArrayList<>();
+    List<Ec2Instance> instancesZonesProfitList = new ArrayList<>();
 
     ExecutorService threadPool = Executors.newFixedThreadPool(filteredInstances.size());
     Set<Future<List<Ec2Instance>>> set = new HashSet<>();
@@ -246,17 +246,17 @@ public class MaxProfitInstanceEstimator {
 
     for (Future<List<Ec2Instance>> future : set) {
       //this is synchronous part, calling future.get() waits untill response is ready
-      instancesZonesCostList.addAll(future.get());
+      instancesZonesProfitList.addAll(future.get());
     }
     threadPool.shutdown();
 
-    Collections.sort(instancesZonesCostList); // sort the list ascending
-    logger.debug("Total number of instanceType/zone: " + instancesZonesCostList.size() + " Slb: "
+    Collections.sort(instancesZonesProfitList); // sort the list ascending
+    logger.debug("Total number of instanceType/zone: " + instancesZonesProfitList.size() + " Slb: "
         + reliabilityLowerBound + " AvailabilityTime: " + availabilityTime);
-    for (Ec2Instance instanceCost : instancesZonesCostList) {
+    for (Ec2Instance instanceCost : instancesZonesProfitList) {
       logger.debug(instanceCost);
     }
-    return instancesZonesCostList;
+    return instancesZonesProfitList;
   }
 
   /**

@@ -67,34 +67,34 @@ public class MaxProfitInstanceEstimatorTest {
 
   //---------------------------------------------------------------------
   @Test
-  public void testEstimateInstanceCost() throws ServiceRecommanderException {
+  public void testEstimateInstanceProfit() throws ServiceRecommanderException {
     BigDecimal cost = maxProfitInstanceEstimator.estimateInstanceProfit("r3.xlarge", "us-west-2c",
         new BigDecimal(0.15).setScale(4, RoundingMode.HALF_UP), 108000000L);
   }
 
   @Test
-  public void testEstimateInstanceCost1() throws ServiceRecommanderException {
+  public void testEstimateInstanceProfit1() throws ServiceRecommanderException {
     BigDecimal cost = maxProfitInstanceEstimator.estimateInstanceProfit("d2.2xlarge", "eu-central-1b",
         new BigDecimal(0.3).setScale(4, RoundingMode.HALF_UP), 229727000L);
   }
 
   //------------------------------------------------------------------------
   @Test
-  void testFindAllInstancesZonesCost() throws Exception {
+  void testFindAllInstancesZonesEstimatedProfit() throws Exception {
     List<Ec2Instance> instances = maxProfitInstanceEstimator.findAllInstancesZonesEstimatedProfit(229727000L,
         (float) 0.7,
         InstanceFilter.ECU.FIXED26, 2f, InstanceFilter.STORAGEGB.HDD12000);
   }
 
   @Test
-  void testFindAllInstancesZonesCost1() throws Exception {
+  void testFindAllInstancesZonesEstimatedProfit1() throws Exception {
     List<Ec2Instance> instances = maxProfitInstanceEstimator.findAllInstancesZonesEstimatedProfit(229727000L,
         (float) 0.7,
         InstanceFilter.ECU.FIXED116, 244f, InstanceFilter.STORAGEGB.HDD12000);
   }
 
   @Test
-  void testFindAllInstancesZonesCost2() throws Exception {
+  void testFindAllInstancesZonesEstimatedProfit2() throws Exception {
     List<Ec2Instance> instances = maxProfitInstanceEstimator.findAllInstancesZonesEstimatedProfit(229727000L,
         (float) 0.7,
         InstanceFilter.ECU.ALL, 0f, InstanceFilter.STORAGEGB.ALL);
@@ -102,10 +102,15 @@ public class MaxProfitInstanceEstimatorTest {
 
   //---------------------------------------------------------------------------
   @Test
-  void testFindInstanceZonesCost() throws ServiceRecommanderException {
+  void testFindInstanceZonesEstimatedProfit() throws ServiceRecommanderException {
     List<Ec2Instance> instances = maxProfitInstanceEstimator.findInstanceZonesEstimatedProfit(229727000L, (float) 0.7,
         "c4.8xlarge");
   }
 
+  @Test
+  void testFindInstanceZonesEstimatedProfit1() throws ServiceRecommanderException { // jim used
+    List<Ec2Instance> instances = maxProfitInstanceEstimator.findInstanceZonesEstimatedProfit(7200000L, (float) 0.95,
+        "m3.xlarge");
+  }
   //---------------------------------------------------------------------------
 }

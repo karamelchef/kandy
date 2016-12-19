@@ -32,7 +32,7 @@ public class CostEstimationExperimentTest {
 
   @Test
   public void testCostEstimationEvaluation() throws Exception {
-    costEstimationExperiment.costEstimationEvaluation(10);
+    costEstimationExperiment.costEstimationEvaluation(3);
   }
 
 }
