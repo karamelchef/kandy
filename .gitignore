@@ -6,8 +6,8 @@ pom.xml.next
 release.properties
 dependency-reduced-pom.xml
 buildNumber.properties
-CloudServiceRecommender/nbactions.xml
-CloudServiceRecommender/nb-configuration.xml
+nbactions.xml
+nb-configuration.xml
 CloudServiceRecommender/*.jpeg
 
 
