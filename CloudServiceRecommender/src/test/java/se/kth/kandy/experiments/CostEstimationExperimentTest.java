@@ -1,5 +1,6 @@
 package se.kth.kandy.experiments;
 
+import java.util.Arrays;
 import org.apache.log4j.Logger;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -32,7 +33,12 @@ public class CostEstimationExperimentTest {
 
   @Test
   public void testCostEstimationEvaluation() throws Exception {
-    costEstimationExperiment.costEstimationEvaluation(3);
+    costEstimationExperiment.costEstimationEvaluation(3, null);
+  }
+
+  @Test
+  public void testCostEstimationEvaluation1() throws Exception {
+    costEstimationExperiment.costEstimationEvaluation(3, Arrays.asList(0.8f));
   }
 
 }

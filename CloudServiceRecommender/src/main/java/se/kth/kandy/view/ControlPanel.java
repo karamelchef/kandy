@@ -56,7 +56,7 @@ public class ControlPanel implements Serializable {
       public void run() {
         try {
           if (experimentId.equalsIgnoreCase("1")) {
-            costEstimationExperiment.costEstimationEvaluation(availabilityTimeHours);
+            costEstimationExperiment.costEstimationEvaluation(availabilityTimeHours, null);
           }
         } catch (Exception ex) {
           logger.error(ex);

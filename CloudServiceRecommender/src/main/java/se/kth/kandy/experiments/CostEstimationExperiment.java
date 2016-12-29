@@ -24,6 +24,8 @@ import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 import se.kth.kandy.batch.SpotInstanceItemReader;
 import se.kth.kandy.cloud.common.exception.ServiceRecommanderException;
 import se.kth.kandy.ejb.algorithm.InstanceFilter;
@@ -52,7 +54,7 @@ public class CostEstimationExperiment {
 
   public static final long TEN_DAY_MILISECOND = 864000000L;
   public static final long ONE_HOUR_MILISECOND = 3600000L;
-  public static final List<Float> RELIABILITY_LOWER_BOUNDS = Arrays.asList(0.0f, 0.2f, 0.4f, 0.6f, 0.8f, 1.0f);
+  public List<Float> reliabilityLowerBounds = Arrays.asList(0.0f, 0.2f, 0.4f, 0.6f, 0.8f, 1.0f);
 
   /**
    * Calculates percent relative error for an instance type and zone. It means the difference between the true cost and
@@ -187,7 +189,10 @@ public class CostEstimationExperiment {
     List<InstanceZoneCost> instanceZoneCostList = new ArrayList<>();
     List<String> availabilityZones = awsEc2SpotInstanceFacade.getAvailabilityZones(instanceType);
 
-    for (float slb : RELIABILITY_LOWER_BOUNDS) {
+    logger.debug(
+        "Start calculating relativeError instaceType: " + instanceType + "  availabilityZones Num: " + availabilityZones.
+        size());
+    for (float slb : reliabilityLowerBounds) {
       for (String availabilityZone : availabilityZones) { // spot
         instanceZoneCostList.addAll(calculateInstanceZoneSamplesCostError(instanceType, availabilityZone,
             availabilityTime, slb));
@@ -202,17 +207,21 @@ public class CostEstimationExperiment {
 
   /**
    * In fixed availabilityTime, calculates percent relative error for all possible spot (instance,availabilityZone) and
-   * different Slb
+   * different Slb. If slb list not provided, will take default one
    *
    * @param availabilityTimeHours
+   * @param slbList
    * @throws InterruptedException
    * @throws ExecutionException
    */
-  public void costEstimationEvaluation(final int availabilityTimeHours) throws Exception {
+  public void costEstimationEvaluation(final int availabilityTimeHours, List<Float> slbList) throws Exception {
 
+    if (slbList != null) {
+      this.reliabilityLowerBounds = slbList;
+    }
     List<String> allInstances = instanceFilter.filterEc2InstanceTypes(InstanceFilter.ECU.ALL, 0.0f,
         InstanceFilter.STORAGEGB.ALL);
-    //List<String> allInstances = Arrays.asList("r3.xlarge");
+//    List<String> allInstances = Arrays.asList("r3.xlarge");
 
     List<InstanceZoneCost> instanceZoneCostList = new ArrayList<>();
 
@@ -226,7 +235,6 @@ public class CostEstimationExperiment {
         @Override
         public List<InstanceZoneCost> call() throws Exception {
           try {
-            logger.debug("Start calculating zones cost for the instace: " + instanceType);
             return calculateInstanceZonesCostError(instanceType, availabilityTimeHours * 3600 * 1000);
           } catch (ServiceRecommanderException ex) {
             logger.error(ex);
@@ -247,6 +255,7 @@ public class CostEstimationExperiment {
 
     logger.debug("Start calculating percent relative error");
 
+    List<BigDecimal> relativeErrorDistributationList = new ArrayList<>();
     BigDecimal percentRelativeErrorList[] = {BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
       BigDecimal.ZERO, BigDecimal.ZERO};
     Integer experimentNumberList[] = {0, 0, 0, 0, 0, 0};
@@ -255,24 +264,26 @@ public class CostEstimationExperiment {
           && instanceZoneCost.getPercentRelativeError().compareTo(new BigDecimal(101)) == -1) {
         // relative error less than 101
 
+        relativeErrorDistributationList.add(instanceZoneCost.getPercentRelativeError());
         //add all errors for each slb and count number of them
-        int index = RELIABILITY_LOWER_BOUNDS.indexOf(instanceZoneCost.getReliability());
+        int index = reliabilityLowerBounds.indexOf(instanceZoneCost.getReliability());
         percentRelativeErrorList[index]
             = instanceZoneCost.getPercentRelativeError().add(percentRelativeErrorList[index]);
         experimentNumberList[index]++;
       }
     }
-    for (int j = 0; j < RELIABILITY_LOWER_BOUNDS.size(); j++) {
+    for (int j = 0; j < reliabilityLowerBounds.size(); j++) {
       //calculate average percent relative error for each Slb
       percentRelativeErrorList[j] = percentRelativeErrorList[j].
           divide(new BigDecimal(experimentNumberList[j]), 2);
     }
 
     logger.debug("Total experiments: " + instanceZoneCostList.size() + ", Tr(hours): " + availabilityTimeHours);
-    for (int j = 0; j < RELIABILITY_LOWER_BOUNDS.size(); j++) {
-      logger.debug("Slb: " + RELIABILITY_LOWER_BOUNDS.get(j) + ", RelativeError: " + percentRelativeErrorList[j]);
+    for (int j = 0; j < reliabilityLowerBounds.size(); j++) {
+      logger.debug("Slb: " + reliabilityLowerBounds.get(j) + ", RelativeError: " + percentRelativeErrorList[j]);
     }
-    jpgLineChartCreator(percentRelativeErrorList, RELIABILITY_LOWER_BOUNDS);
+    jpgLineChartCreator(percentRelativeErrorList, reliabilityLowerBounds);
+    jpgScatterPlotCreator(relativeErrorDistributationList);
   }
 
   /**
@@ -304,5 +315,34 @@ public class CostEstimationExperiment {
     File lineChart = new File(fileName);
     ChartUtilities.saveChartAsJPEG(lineChart, lineChartObject, width, height);
     logger.debug(fileName + " created");
+  }
+
+  protected void jpgScatterPlotCreator(List<BigDecimal> relativeErrors) {
+    XYSeries xyseries = new XYSeries("Relative error of sample requests");
+    for (int i = 0; i < relativeErrors.size(); i++) {
+      xyseries.add(i, relativeErrors.get(i));
+    }
+    final XYSeriesCollection dataset = new XYSeriesCollection();
+    dataset.addSeries(xyseries);
+
+    JFreeChart scatterChartObject = ChartFactory.createScatterPlot(
+        "Relative error distributation in fixed Slb and Tr", "Request number", "Percent relative error",
+        dataset, PlotOrientation.VERTICAL,
+        true, true, false);
+
+    int width = 640; /* Width of the image */
+
+    int height = 480; /* Height of the image */
+
+    String fileName = "relativeErrorDistribution.jpeg";
+    File scatterChart = new File(fileName);
+    try {
+      ChartUtilities.saveChartAsJPEG(scatterChart, scatterChartObject, width, height);
+    } catch (IOException ex) {
+      logger.error("unable to save chart");
+      return;
+    }
+    logger.debug(fileName + " generated");
+
   }
 }
