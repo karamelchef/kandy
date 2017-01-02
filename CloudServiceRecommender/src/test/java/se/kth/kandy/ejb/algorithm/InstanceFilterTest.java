@@ -25,4 +25,9 @@ public class InstanceFilterTest {
     assertNotNull(instanceFilter.filterEc2InstanceTypes(ECU.ALL, 2f, STORAGEGB.ALL));
   }
 
+  @Test
+  public void testFilterEc2InstanceTypes1() {
+    assertNotNull(instanceFilter.filterEc2InstanceTypes(InstanceFilter.ECU.FIXED116, 244f,
+        InstanceFilter.STORAGEGB.HDD12000));
+  }
 }

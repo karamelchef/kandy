@@ -1,5 +1,6 @@
 package se.kth.kandy.ejb.restservice;
 
+import java.util.Date;
 import java.util.List;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -54,7 +55,7 @@ public class ClusterCostFacadeREST {
         instanceSpecification.getReliabilityLowerBound(),
         instanceSpecification.getMinECU(),
         instanceSpecification.getMinMemoryGB(),
-        instanceSpecification.getMinStorage());
+        instanceSpecification.getMinStorage(), new Date());
   }
 
 }

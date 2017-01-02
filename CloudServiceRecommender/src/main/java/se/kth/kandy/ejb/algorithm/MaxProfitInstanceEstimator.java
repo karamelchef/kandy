@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -58,13 +59,14 @@ public class MaxProfitInstanceEstimator {
    * @param availabilityZone
    * @param bid
    * @param availabilityTime in millisecond
+   * @param experimentDate
    * @return empirical probability of success between [0,1] - S(r,v)
    */
   public float estimateSpotReliability(String instanceType, String availabilityZone, BigDecimal bid,
-      long availabilityTime) {
+      long availabilityTime, Date experimentDate) {
 
     List<Long> instancesAvailTimeList = spotInstanceStatistics.getSpotSamplesAvailabilityTime(instanceType,
-        availabilityZone, bid, availabilityTime); // availability time is just for creating the chart
+        availabilityZone, bid, availabilityTime, experimentDate); // availability time is just for creating the chart
 
     float probabilityOfSuccess = 1; // if there would be no termination
     if (instancesAvailTimeList.isEmpty()) {
@@ -98,11 +100,12 @@ public class MaxProfitInstanceEstimator {
    * @param availabilityZone
    * @param availabilityTime in millisecond
    * @param reliabilityLowerBound between [0,1] Slb
+   * @param experimentDate
    * @return bid $/h - return 0 if instance is deprecated
    * @throws ServiceRecommanderException
    */
   public BigDecimal estimateMinBid(String instanceType, String availabilityZone, long availabilityTime,
-      float reliabilityLowerBound) throws ServiceRecommanderException {
+      float reliabilityLowerBound, Date experimentDate) throws ServiceRecommanderException {
     // starts the bid from current spot market price
     BigDecimal bid = ec2ApiWrapper.getCurrentLinuxSpotPrice(instanceType, availabilityZone);
 
@@ -117,11 +120,12 @@ public class MaxProfitInstanceEstimator {
 
     if (bid.compareTo(BigDecimal.ZERO) == 1) {
       //bid should be more than 0, otherwise this instance/zone is not valid any more
-      float reliability = estimateSpotReliability(instanceType, availabilityZone, bid, availabilityTime);
+      float reliability = estimateSpotReliability(instanceType, availabilityZone, bid, availabilityTime,
+          experimentDate);
       if (reliability != -1) {
         while (reliability < reliabilityLowerBound) {
           bid = bid.add(new BigDecimal(bidIncrement)); // increase the bid in $
-          reliability = estimateSpotReliability(instanceType, availabilityZone, bid, availabilityTime);
+          reliability = estimateSpotReliability(instanceType, availabilityZone, bid, availabilityTime, experimentDate);
         }
       }
     }
@@ -139,13 +143,14 @@ public class MaxProfitInstanceEstimator {
    * @param availabilityTime
    * @param bid
    * @param availabilityZone
+   * @param experimentDate
    * @return average run time hour
    */
   public double estimateTerminationAverageRunTime(String instanceType, String availabilityZone, BigDecimal bid,
-      long availabilityTime) {
+      long availabilityTime, Date experimentDate) {
 
     List<Long> instancesAvailTimeList = spotInstanceStatistics.getSpotSamplesAvailabilityTime(instanceType,
-        availabilityZone, bid, availabilityTime);  // ascending list of samples availability time
+        availabilityZone, bid, availabilityTime, experimentDate);  // ascending list of samples availability time
 
     // availability time is just for creating the chart
     long totalRunTimeHours = 0;
@@ -178,11 +183,12 @@ public class MaxProfitInstanceEstimator {
    * @param zone - Region in case of Ondemand or AvailabilityZone in case of spot
    * @param bid - 0 means Ondemand instance
    * @param availabilityTime
+   * @param experimentDate
    * @return instance cost in dollar
    * @throws ServiceRecommanderException
    */
   public BigDecimal estimateInstanceProfit(String instanceType, String zone, BigDecimal bid,
-      long availabilityTime) throws ServiceRecommanderException {
+      long availabilityTime, Date experimentDate) throws ServiceRecommanderException {
 
     BigDecimal Pmkt;
     float Srv;
@@ -192,9 +198,9 @@ public class MaxProfitInstanceEstimator {
       Srv = 1;
     } else {//spot instance
       Pmkt = ec2ApiWrapper.getCurrentLinuxSpotPrice(instanceType, zone);
-      Srv = estimateSpotReliability(instanceType, zone, bid, availabilityTime);
+      Srv = estimateSpotReliability(instanceType, zone, bid, availabilityTime, experimentDate);
       //Instance average availability time, In case of failure
-      Tfavg = estimateTerminationAverageRunTime(instanceType, zone, bid, availabilityTime);
+      Tfavg = estimateTerminationAverageRunTime(instanceType, zone, bid, availabilityTime, experimentDate);
     }
 
     // Instance availability time, round up in case of success for spot or Ondemand
@@ -221,6 +227,7 @@ public class MaxProfitInstanceEstimator {
    * @param minECU
    * @param minMemoryGB
    * @param minStorage
+   * @param experimentDate
    * @return ascending sorted list of estimated profit of all filtered instances and their possible zones
    *
    * @throws se.kth.kandy.cloud.common.exception.ServiceRecommanderException
@@ -228,7 +235,7 @@ public class MaxProfitInstanceEstimator {
    * @throws java.util.concurrent.ExecutionException
    */
   public List<Ec2Instance> findAllInstancesZonesEstimatedProfit(long availabilityTime, float reliabilityLowerBound,
-      InstanceFilter.ECU minECU, float minMemoryGB, InstanceFilter.STORAGEGB minStorage)
+      InstanceFilter.ECU minECU, float minMemoryGB, InstanceFilter.STORAGEGB minStorage, Date experimentDate)
       throws ServiceRecommanderException, InterruptedException, ExecutionException {
 
     List<String> filteredInstances = instanceFilter.filterEc2InstanceTypes(minECU, minMemoryGB, minStorage);
@@ -239,7 +246,7 @@ public class MaxProfitInstanceEstimator {
 
     for (String instanceType : filteredInstances) { //assign a thread to each instanceType/zones
       Callable instanceZonesCostThread = new InstanceZonesEstimatedProfitThread(availabilityTime, reliabilityLowerBound,
-          instanceType, this);
+          instanceType, experimentDate, this);
       Future<List<Ec2Instance>> future = threadPool.submit(instanceZonesCostThread);
       set.add(future);
     }
@@ -252,7 +259,7 @@ public class MaxProfitInstanceEstimator {
 
     Collections.sort(instancesZonesProfitList); // sort the list ascending
     logger.debug("Total number of instanceType/zone: " + instancesZonesProfitList.size() + " Slb: "
-        + reliabilityLowerBound + " AvailabilityTime: " + availabilityTime);
+        + reliabilityLowerBound + " AvailabilityTime: " + availabilityTime + " ExperimentDay: " + experimentDate);
     for (Ec2Instance instanceCost : instancesZonesProfitList) {
       logger.debug(instanceCost);
     }
@@ -267,14 +274,15 @@ public class MaxProfitInstanceEstimator {
    * @param availabilityTime
    * @param reliabilityLowerBound
    * @param instanceType
+   * @param experimentDate
    * @return ascending sorted list of estimated profit of the instance and all possible zones
    * @throws ServiceRecommanderException
    */
   public List<Ec2Instance> findInstanceZonesEstimatedProfit(long availabilityTime, float reliabilityLowerBound,
-      String instanceType) throws ServiceRecommanderException {
+      String instanceType, Date experimentDate) throws ServiceRecommanderException {
 
     List<Ec2Instance> instanceZonesEPList = estimateInstanceZonesProfit(availabilityTime,
-        reliabilityLowerBound, instanceType);
+        reliabilityLowerBound, instanceType, experimentDate);
 
     logger.debug("Filtered Ec2 instances list. Slb: " + reliabilityLowerBound
         + " AvailabilityTime: " + availabilityTime);
@@ -285,14 +293,14 @@ public class MaxProfitInstanceEstimator {
   }
 
   public List<Ec2Instance> estimateInstanceZonesProfit(long availabilityTime, float reliabilityLowerBound,
-      String instanceType) throws ServiceRecommanderException {
+      String instanceType, Date experimentDate) throws ServiceRecommanderException {
 
     List<Ec2Instance> instanceZonesEPList = new ArrayList<>();
 
     List<String> regions = awsEc2InstancePriceFacade.getRegions(instanceType);
     for (String region : regions) { // ondemand
-      BigDecimal estimatedProfit = estimateInstanceProfit(instanceType, region, BigDecimal.ZERO, availabilityTime).
-          setScale(4, RoundingMode.HALF_UP);
+      BigDecimal estimatedProfit = estimateInstanceProfit(instanceType, region, BigDecimal.ZERO, availabilityTime,
+          experimentDate).setScale(4, RoundingMode.HALF_UP);
       instanceZonesEPList.add(new Ec2Instance(instanceType, region, estimatedProfit,
           awsEc2InstancePriceFacade.getPrice(region, instanceType),
           Ec2Instance.INSTANCETYPE.ONDEMAND, BigDecimal.ZERO));
@@ -300,11 +308,13 @@ public class MaxProfitInstanceEstimator {
 
     List<String> availabilityZones = awsEc2SpotInstanceFacade.getAvailabilityZones(instanceType);
     for (String availabilityZone : availabilityZones) { // spot
-      BigDecimal bid = estimateMinBid(instanceType, availabilityZone, availabilityTime, reliabilityLowerBound);
+      BigDecimal bid = estimateMinBid(instanceType, availabilityZone, availabilityTime, reliabilityLowerBound,
+          experimentDate);
       if (bid.compareTo(BigDecimal.ZERO) == 0) { // Instance/zone is deprecated
         continue;
       }
-      BigDecimal estimatedProfit = estimateInstanceProfit(instanceType, availabilityZone, bid, availabilityTime);
+      BigDecimal estimatedProfit = estimateInstanceProfit(instanceType, availabilityZone, bid, availabilityTime,
+          experimentDate);
       instanceZonesEPList.add(new Ec2Instance(instanceType, availabilityZone, estimatedProfit,
           ec2ApiWrapper.getCurrentLinuxSpotPrice(instanceType, availabilityZone), Ec2Instance.INSTANCETYPE.SPOT, bid));
     }

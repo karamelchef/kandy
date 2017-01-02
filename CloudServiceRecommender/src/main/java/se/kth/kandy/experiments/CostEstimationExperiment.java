@@ -75,7 +75,6 @@ public class CostEstimationExperiment {
    *
    * @param instanceType
    * @param availabilityZone
-   * @param bid
    * @param reliabilityLowerBound
    * @param availabilityTime
    * @return
@@ -83,10 +82,10 @@ public class CostEstimationExperiment {
    */
   public List<InstanceZoneCost> calculateInstanceZoneSamplesCostError(String instanceType, String availabilityZone,
       long availabilityTime, float reliabilityLowerBound) throws ServiceRecommanderException {
-
+    Date experimentDate = new Date();
     List<InstanceZoneCost> instanceZoneCostList = new ArrayList<>();
     BigDecimal bid = maxProfitInstanceEstimator.estimateMinBid(instanceType, availabilityZone, availabilityTime,
-        reliabilityLowerBound);
+        reliabilityLowerBound, experimentDate);
 
     if (bid.compareTo(BigDecimal.ZERO) == 0) { //instance zone is deprecated
       return instanceZoneCostList; // return empty list
@@ -96,7 +95,7 @@ public class CostEstimationExperiment {
         getSpotInstanceList(instanceType, availabilityZone);
 
     double terminationAverageTime = maxProfitInstanceEstimator.estimateTerminationAverageRunTime(instanceType,
-        availabilityZone, bid, availabilityTime);
+        availabilityZone, bid, availabilityTime, experimentDate);
 
     Calendar calStart = new GregorianCalendar();
     calStart.setTime(new Date());
@@ -189,9 +188,8 @@ public class CostEstimationExperiment {
     List<InstanceZoneCost> instanceZoneCostList = new ArrayList<>();
     List<String> availabilityZones = awsEc2SpotInstanceFacade.getAvailabilityZones(instanceType);
 
-    logger.debug(
-        "Start calculating relativeError instaceType: " + instanceType + "  availabilityZones Num: " + availabilityZones.
-        size());
+    logger.debug("Start calculating relativeError instaceType: " + instanceType
+        + "  availabilityZones Num: " + availabilityZones.size());
     for (float slb : reliabilityLowerBounds) {
       for (String availabilityZone : availabilityZones) { // spot
         instanceZoneCostList.addAll(calculateInstanceZoneSamplesCostError(instanceType, availabilityZone,

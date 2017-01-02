@@ -45,16 +45,17 @@ public class SpotInstanceStatistics {
    * @param availabilityZone
    * @param bid
    * @param availabilityTime - just for creating the chart
+   * @param experimentDate
    * @return sorted list of availability time of samples from past 85 days ascending.
    */
   public List<Long> getSpotSamplesAvailabilityTime(String instanceType, String availabilityZone, BigDecimal bid,
-      long availabilityTime) { //availability time is just for creating the chart
+      long availabilityTime, Date experimentDate) { //availability time is just for creating the chart
 
     List<AwsEc2SpotInstance> spotPricesList = awsEc2SpotInstanceFacade.
         getSpotInstanceList(instanceType, availabilityZone);
 
     Calendar calStart = new GregorianCalendar();
-    calStart.setTime(new Date());
+    calStart.setTime(experimentDate);
     calStart.set(Calendar.HOUR_OF_DAY, 7);
     calStart.set(Calendar.MINUTE, 0);
     calStart.set(Calendar.SECOND, 0);
