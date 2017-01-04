@@ -2,7 +2,9 @@ package se.kth.kandy.ejb.algorithm;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 import org.apache.log4j.Logger;
 import org.testng.annotations.BeforeClass;
@@ -23,6 +25,14 @@ public class MaxProfitInstanceEstimatorTest {
   @BeforeClass
   public void setUpClass() {
     maxProfitInstanceEstimator = EjbFactory.getInstance().getMaxProfitInstanceEstimator();
+  }
+
+  //--------------------------------------------------------------------
+  @Test
+  public void testSportPrice() {
+    Calendar cal = new GregorianCalendar(2016, Calendar.OCTOBER, 21, 8, 0, 0);
+    maxProfitInstanceEstimator.getLinuxSpotPrice("r3.xlarge", "us-west-2c", cal.getTime());
+    maxProfitInstanceEstimator.getLinuxSpotPrice("r3.xlarge", "us-west-2c", new Date());
   }
 
   //------------------------------------------------------------------

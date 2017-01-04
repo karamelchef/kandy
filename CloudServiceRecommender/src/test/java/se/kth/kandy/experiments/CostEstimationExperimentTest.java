@@ -28,7 +28,7 @@ public class CostEstimationExperimentTest {
 
   @Test
   public void testCalculateInstanceZonesCostError() throws Exception {
-    costEstimationExperiment.calculateInstanceZonesCostError("r3.xlarge", 108000000L);
+    costEstimationExperiment.calculateInstanceZonesCostError("r3.xlarge", 43200000L);
   }
 
   @Test

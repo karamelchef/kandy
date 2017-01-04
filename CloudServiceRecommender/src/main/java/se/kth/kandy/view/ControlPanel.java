@@ -2,12 +2,13 @@ package se.kth.kandy.view;
 
 import java.io.Serializable;
 import javax.ejb.EJB;
-import javax.enterprise.context.SessionScoped;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Named;
 import org.apache.log4j.Logger;
 import se.kth.kandy.ejb.batchcontroller.AwsEc2PriceScheduledBatchFacade;
 import se.kth.kandy.ejb.jpa.KaramelStatisticsUtilFacade;
 import se.kth.kandy.experiments.CostEstimationExperiment;
+import se.kth.kandy.experiments.ProfitEstimationExperiment;
 
 /**
  * JSF Managed Bean. Control panel for Kandy server
@@ -15,7 +16,7 @@ import se.kth.kandy.experiments.CostEstimationExperiment;
  * @author Hossein
  */
 @Named("controlPanel")
-@SessionScoped
+@ApplicationScoped
 public class ControlPanel implements Serializable {
 
   private static final Logger logger = Logger.getLogger(ControlPanel.class);
@@ -26,8 +27,10 @@ public class ControlPanel implements Serializable {
   private AwsEc2PriceScheduledBatchFacade awsEc2PriceScheduledBatchFacade;
   @EJB
   private CostEstimationExperiment costEstimationExperiment;
+  @EJB
+  private ProfitEstimationExperiment profitEstimationExperiment;
 
-  private final String experiments = "1:CostEstimation";
+  private final String experiments = "1:Cost Estimation SameDataSet, 2:Cost/Profit Estimation DifferentDataset";
 
   private String experimentId;
   private int availabilityTimeHours;
@@ -50,7 +53,7 @@ public class ControlPanel implements Serializable {
 
   public void runExperiment() throws Exception {
 
-    new Runnable() { // make the call asynchronous, it is time consuming
+    Runnable r = new Runnable() { // make the call asynchronous, it is time consuming
 
       @Override
       public void run() {
@@ -58,11 +61,20 @@ public class ControlPanel implements Serializable {
           if (experimentId.equalsIgnoreCase("1")) {
             costEstimationExperiment.costEstimationEvaluation(availabilityTimeHours, null);
           }
+          if (experimentId.equalsIgnoreCase("2")) {
+            profitEstimationExperiment.profitEstimationEvaluation(availabilityTimeHours, null);
+          }
         } catch (Exception ex) {
           logger.error(ex);
+          logger.debug("stack trace --> ");
+          ex.printStackTrace();
         }
       }
-    }.run();
+    };
+
+    Thread t = new Thread(r);
+    t.start();
+    logger.debug("experiment submitted");
   }
 
   public ControlPanel() {

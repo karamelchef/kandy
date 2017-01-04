@@ -105,7 +105,6 @@ public class Ec2ApiWrapper {
     if (spots.get(0).getAvailabilityZone().equals(availabilityZone)) {
       BigDecimal price = new BigDecimal(spots.get(0).getSpotPrice());
       price = price.setScale(4, RoundingMode.HALF_UP);
-      logger.debug("Current spot price for " + instanceType + " in " + availabilityZone + " : " + price);
       return price;
     } else {
       return BigDecimal.ZERO;  // indicate error

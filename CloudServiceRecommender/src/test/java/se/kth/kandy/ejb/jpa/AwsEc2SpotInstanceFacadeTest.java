@@ -1,5 +1,8 @@
 package se.kth.kandy.ejb.jpa;
 
+import java.math.BigDecimal;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.List;
 import org.apache.log4j.Logger;
 import org.testng.Assert;
@@ -39,6 +42,14 @@ public class AwsEc2SpotInstanceFacadeTest {
   public void spotListTest() {
     List<AwsEc2SpotInstance> instanceList = awsEc2SpotInstanceFacade.getSpotInstanceList("c3.4xlarge", "us-west-1a");
     Assert.assertNotNull(instanceList);
+  }
+
+  @Test
+  public void spotPriceTest() {
+    Calendar cal = new GregorianCalendar(2016, Calendar.OCTOBER, 21, 8, 0, 0);
+    BigDecimal price = awsEc2SpotInstanceFacade.getSpotPrice("r3.xlarge", "us-west-2c", cal.getTime());
+    logger.debug(price);
+    Assert.assertNotNull(price);
   }
 
 }

@@ -107,7 +107,7 @@ public class MaxProfitInstanceEstimator {
   public BigDecimal estimateMinBid(String instanceType, String availabilityZone, long availabilityTime,
       float reliabilityLowerBound, Date experimentDate) throws ServiceRecommanderException {
     // starts the bid from current spot market price
-    BigDecimal bid = ec2ApiWrapper.getCurrentLinuxSpotPrice(instanceType, availabilityZone);
+    BigDecimal bid = getLinuxSpotPrice(instanceType, availabilityZone, experimentDate);
 
     String bidIncrement;  // to improve the speed
     if (reliabilityLowerBound == 1) {
@@ -197,7 +197,7 @@ public class MaxProfitInstanceEstimator {
       Pmkt = awsEc2InstancePriceFacade.getPrice(zone, instanceType);
       Srv = 1;
     } else {//spot instance
-      Pmkt = ec2ApiWrapper.getCurrentLinuxSpotPrice(instanceType, zone);
+      Pmkt = getLinuxSpotPrice(instanceType, zone, experimentDate);
       Srv = estimateSpotReliability(instanceType, zone, bid, availabilityTime, experimentDate);
       //Instance average availability time, In case of failure
       Tfavg = estimateTerminationAverageRunTime(instanceType, zone, bid, availabilityTime, experimentDate);
@@ -316,11 +316,34 @@ public class MaxProfitInstanceEstimator {
       BigDecimal estimatedProfit = estimateInstanceProfit(instanceType, availabilityZone, bid, availabilityTime,
           experimentDate);
       instanceZonesEPList.add(new Ec2Instance(instanceType, availabilityZone, estimatedProfit,
-          ec2ApiWrapper.getCurrentLinuxSpotPrice(instanceType, availabilityZone), Ec2Instance.INSTANCETYPE.SPOT, bid));
+          getLinuxSpotPrice(instanceType, availabilityZone, experimentDate), Ec2Instance.INSTANCETYPE.SPOT, bid));
     }
 
     Collections.sort(instanceZonesEPList); // sort the list ascending
     return instanceZonesEPList;
+  }
+
+  /**
+   * if experiment date is before 2 days ago, we should get the price from database. It is used for experiments that we
+   * set the date back in time.
+   *
+   * @param instanceType
+   * @param availabilityZone
+   * @param experimentDate
+   * @return
+   */
+  public BigDecimal getLinuxSpotPrice(String instanceType, String availabilityZone, final Date experimentDate) {
+
+    BigDecimal price;
+    Date now = new Date();
+    if (experimentDate.getTime() < (now.getTime() - 172800000)) { //2 days ago
+      price = awsEc2SpotInstanceFacade.getSpotPrice(instanceType, availabilityZone, experimentDate);
+    } else {
+      price = ec2ApiWrapper.getCurrentLinuxSpotPrice(instanceType, availabilityZone);
+    }
+    logger.debug(
+        "Spot price " + instanceType + "/" + availabilityZone + " experimentTime: " + experimentDate + " : " + price);
+    return price;
   }
 
 }

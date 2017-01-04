@@ -2,6 +2,7 @@ package se.kth.kandy.ejb.jpa;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -96,6 +97,36 @@ public class AwsEc2SpotInstanceFacade extends AbstractFacade<AwsEc2SpotInstance>
       results = new ArrayList<>();
     }
     return results;
+  }
+
+  /**
+   * Get instance price from database based on type zone and time specified. there may be no record for the exact time,
+   * it returns the first occurrence forward in time.
+   *
+   * @param instanceType
+   * @param availabilityZone
+   * @param experimentTime
+   * @return spot price
+   */
+  public BigDecimal getSpotPrice(String instanceType, String availabilityZone, Date experimentTime) {
+    Query query = getEntityManager().createNamedQuery("AwsEc2SpotInstance.instancePriceFilterdByTime",
+        AwsEc2SpotInstance.class);
+    query.setParameter("instanceType", instanceType);
+    query.setParameter("productDescription", "Linux/UNIX");
+    query.setParameter("availabilityZone", availabilityZone);
+    query.setParameter("timeStamp", new Timestamp(experimentTime.getTime()));
+    List<AwsEc2SpotInstance> results;
+    try {
+      results = (List<AwsEc2SpotInstance>) query.getResultList();
+      if (results.size() > 0) {
+        return results.get(0).getPrice();
+      } else {
+        return BigDecimal.ZERO;
+      }
+    } catch (NullPointerException e) {
+      logger.error("Null retriving spotList for: " + instanceType + " / " + availabilityZone);
+      return BigDecimal.ZERO;
+    }
   }
 
   /**

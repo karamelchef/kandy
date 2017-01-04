@@ -30,6 +30,10 @@ import javax.persistence.Table;
       query = "SELECT k FROM AwsEc2SpotInstance k WHERE k.id.instanceType = :instanceType AND "
       + "k.id.productDescription = :productDescription AND k.id.availabilityZone = :availabilityZone "
       + "ORDER BY k.id.timeStamp ASC"),
+  @NamedQuery(name = "AwsEc2SpotInstance.instancePriceFilterdByTime",
+      query = "SELECT k FROM AwsEc2SpotInstance k WHERE k.id.instanceType = :instanceType AND "
+      + "k.id.productDescription = :productDescription AND k.id.availabilityZone = :availabilityZone "
+      + "AND k.id.timeStamp >= :timeStamp ORDER BY k.id.timeStamp ASC"),
   @NamedQuery(name = "AwsEc2SpotInstance.availabilityZone",
       query = "SELECT distinct k.id.availabilityZone FROM AwsEc2SpotInstance k WHERE k.id.instanceType = :instanceType "
       + "AND k.id.productDescription = :productDescription")})

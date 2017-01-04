@@ -10,7 +10,7 @@ import java.util.Date;
  */
 public class InstanceZoneCost {
 
-  protected String InstanceType;
+  protected String InstanceName;
   protected String zone;
   protected long availabilityTime;
   protected float reliability;
@@ -23,15 +23,37 @@ public class InstanceZoneCost {
   protected BigDecimal trueCost = BigDecimal.ZERO;
   protected BigDecimal percentRelativeError = BigDecimal.ZERO;
 
-  public InstanceZoneCost(String InstanceType, String zone, long availabilityTime, BigDecimal marketHourlyPrice,
+  public InstanceZoneCost() {
+  }
+
+  public InstanceZoneCost(String InstanceName, String zone, long availabilityTime, BigDecimal marketHourlyPrice,
       long startTime, float reliability, BigDecimal bid) {
-    this.InstanceType = InstanceType;
+    this.InstanceName = InstanceName;
     this.zone = zone;
     this.availabilityTime = availabilityTime;
     this.marketHourlyPrice = marketHourlyPrice;
     this.startTime = startTime;
     this.reliability = reliability;
     this.bid = bid;
+  }
+
+  /**
+   * used for profit experiment
+   *
+   * @param object
+   */
+  protected InstanceZoneCost(InstanceZoneCost object) {
+    this.InstanceName = object.InstanceName;
+    this.zone = object.zone;
+    this.availabilityTime = object.availabilityTime;
+    this.marketHourlyPrice = object.marketHourlyPrice;
+    this.startTime = object.startTime;
+    this.reliability = object.reliability;
+    this.bid = object.bid;
+    this.success = object.success;
+    this.trueCost = object.trueCost;
+    this.estimatedCost = object.estimatedCost;
+    this.percentRelativeError = object.percentRelativeError;
   }
 
   /**
@@ -52,10 +74,14 @@ public class InstanceZoneCost {
    *
    * T = average run time before termination //in case failure
    *
-   * @param availabilityTime
+   * @param runTime
    */
-  public void calculateEstimatedCost(double availabilityTime) {
-    this.estimatedCost = marketHourlyPrice.multiply(new BigDecimal(availabilityTime)).setScale(4, RoundingMode.HALF_UP);
+  public void calculateEstimatedCost(double runTime) {
+    this.estimatedCost = marketHourlyPrice.multiply(new BigDecimal(runTime)).setScale(4, RoundingMode.HALF_UP);
+  }
+
+  public void setEstimatedCost(BigDecimal estimatedCost) {
+    this.estimatedCost = estimatedCost;
   }
 
   /**
@@ -65,6 +91,10 @@ public class InstanceZoneCost {
    */
   public void addTrueCost(BigDecimal anHourPrice) {
     this.trueCost = this.trueCost.add(anHourPrice);
+  }
+
+  public void setTrueCost(BigDecimal trueCost) {
+    this.trueCost = trueCost;
   }
 
   /**
@@ -83,8 +113,8 @@ public class InstanceZoneCost {
     }
   }
 
-  public String getInstanceType() {
-    return InstanceType;
+  public String getInstanceName() {
+    return InstanceName;
   }
 
   public String getZone() {
@@ -129,10 +159,10 @@ public class InstanceZoneCost {
 
   @Override
   public String toString() {
-    return "{" + "i=" + InstanceType + ", z=" + zone + ", Tr=" + availabilityTime + ", slb=" + reliability
+    return "{" + "i=" + InstanceName + ", z=" + zone + ", Tr=" + availabilityTime + ", slb=" + reliability
         + ", startTime=" + new Date(startTime) + ", Pmkt=" + marketHourlyPrice + ", bid=" + bid + ", success=" + success
         + ", estimatedCost=" + estimatedCost + ", trueCost=" + trueCost
-        + ", percentRelativeError=" + percentRelativeError + '}';
+        + ", PRE=" + percentRelativeError + '}';
   }
 
 }

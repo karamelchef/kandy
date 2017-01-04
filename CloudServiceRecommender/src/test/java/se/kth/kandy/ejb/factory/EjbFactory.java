@@ -10,6 +10,7 @@ import se.kth.kandy.ejb.jpa.AwsEc2SpotInstanceFacade;
 import se.kth.kandy.ejb.jpa.KaramelPhaseStatisticsFacade;
 import se.kth.kandy.ejb.restservice.ClusterCostFacadeREST;
 import se.kth.kandy.experiments.CostEstimationExperiment;
+import se.kth.kandy.experiments.ProfitEstimationExperiment;
 
 /**
  * Singleton design pattern. Factory for initializing session beans for integration tests
@@ -35,14 +36,14 @@ public class EjbFactory {
     if (container == null) {
       Properties properties = new Properties();
 
+      properties.put("myTransactionManager", "new://TransactionManager?type=TransactionManager");
+      properties.put("myTransactionManager.defaultTransactionTimeout", "3hr");  //hour
+
       properties.put("jdbc/bankWorkTestResource", "new://Resource?type=DataSource");
       properties.put("jdbc/bankWorkTestResource.JdbcDriver", "com.mysql.jdbc.Driver");
       properties.put("jdbc/bankWorkTestResource.JdbcUrl", databaseUrl);
       properties.put("jdbc/bankWorkTestResource.UserName", databaseUser);
       properties.put("jdbc/bankWorkTestResource.Password", databasePass);
-      properties.put("myStatelessContainer.maxSize", 0);
-      properties.put("myStatelessContainer.strictPooling", false);
-      //properties.put("myStatelessContainer.accessTimeout", 1800);  //second
 
       container = EJBContainer.createEJBContainer(properties);
     }
@@ -110,6 +111,16 @@ public class EjbFactory {
     try {
       return (CostEstimationExperiment) container.getContext().
           lookup("java:global/CloudServiceRecommender/CostEstimationExperiment");
+    } catch (NamingException ex) {
+      logger.error("Could not resolve session bean", ex);
+    }
+    return null;
+  }
+
+  public ProfitEstimationExperiment getProfitEstimationExperiment() {
+    try {
+      return (ProfitEstimationExperiment) container.getContext().
+          lookup("java:global/CloudServiceRecommender/ProfitEstimationExperiment");
     } catch (NamingException ex) {
       logger.error("Could not resolve session bean", ex);
     }
