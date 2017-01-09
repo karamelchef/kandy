@@ -56,7 +56,7 @@ public class ProfitEstimationExperiment {
 
   public static final long ONE_HOUR_MILISECOND = 3600000L;
   public List<Float> reliabilityList = Arrays.asList(0.0f, 0.2f, 0.4f, 0.6f, 0.8f, 1.0f);
-  //public List<Float> reliabilityList = Arrays.asList(0.4f);
+//  public List<Float> reliabilityList = Arrays.asList(0.6f);
 
   public static final Calendar[] EXPERIMENT_TIMES = {
     new GregorianCalendar(2016, Calendar.OCTOBER, 21, 7, 0, 0),
@@ -185,9 +185,16 @@ public class ProfitEstimationExperiment {
         throw new RuntimeException("Main thread is interuppted");
       }
       //this is synchronous part, calling future.get() waits untill response is ready
-      boolean result = future.get();
+      boolean result = false;
+      try {
+        result = future.get();
+      } catch (Exception e) {
+        logger.error("Instance thread failed, stacktrace -->");
+        e.printStackTrace();
+      }
+
       if (!result) {
-        logger.error("Instance thread did not finish successfully");
+        logger.error("Instance thread interupted");
       } else {
         logger.error("Instance thread finished successfully");
       }

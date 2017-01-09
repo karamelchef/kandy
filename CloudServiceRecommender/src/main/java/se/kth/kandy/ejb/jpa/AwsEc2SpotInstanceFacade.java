@@ -92,7 +92,8 @@ public class AwsEc2SpotInstanceFacade extends AbstractFacade<AwsEc2SpotInstance>
     List<AwsEc2SpotInstance> results;
     try {
       results = (List<AwsEc2SpotInstance>) query.getResultList();
-    } catch (NullPointerException e) {
+    } catch (Exception e) {
+      e.printStackTrace();
       logger.error("Null retriving spotList for: " + instanceType + " / " + availabilityZone);
       results = new ArrayList<>();
     }
@@ -123,8 +124,9 @@ public class AwsEc2SpotInstanceFacade extends AbstractFacade<AwsEc2SpotInstance>
       } else {
         return BigDecimal.ZERO;
       }
-    } catch (NullPointerException e) {
-      logger.error("Null retriving spotList for: " + instanceType + " / " + availabilityZone);
+    } catch (Exception e) {
+      e.printStackTrace();
+      logger.error("Null retriving spotListPrice for: " + instanceType + " / " + availabilityZone);
       return BigDecimal.ZERO;
     }
   }
