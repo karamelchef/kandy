@@ -25,9 +25,9 @@ public class ProfitEstimationExperimentTest {
 
   @Test
   public void testCalculateInstanceZoneSamplesTrueCost() throws Exception {
-    profitEstimationExperiment.calculateIZSamplesTrueCostEstimatedProfitSpot(
+    profitEstimationExperiment.calculateIZSpotSamplesTrueCostEstimatedCostEstimatedProfit(
         "r3.xlarge", "us-west-2c", 43200000L, 0.7f);
-    profitEstimationExperiment.calculateIZSamplesTrueCostEstimatedProfitOndemand(
+    profitEstimationExperiment.calculateIZOndemandSamplesTrueCostEstimatedProfit(
         "r3.xlarge", "us-west-2", 43200000L);
   }
 
@@ -38,12 +38,12 @@ public class ProfitEstimationExperimentTest {
 
   @Test
   public void testProfitEstimationEvaluation() throws Exception {
-    profitEstimationExperiment.profitEstimationEvaluation(3, null);
+    profitEstimationExperiment.costProfitEstimationEvaluation(3, null);
   }
 
   @Test
   public void testProfitEstimationEvaluation1() throws Exception {
-    profitEstimationExperiment.profitEstimationEvaluation(3, Arrays.asList(0.8f));
+    profitEstimationExperiment.costProfitEstimationEvaluation(3, Arrays.asList(0.8f));
   }
 
   //------------------------------------------------------------------------------------------

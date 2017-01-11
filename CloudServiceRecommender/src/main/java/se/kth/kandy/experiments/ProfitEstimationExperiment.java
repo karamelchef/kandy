@@ -71,7 +71,7 @@ public class ProfitEstimationExperiment {
     }
   }
 
-  public void calculateIZSamplesTrueCostEstimatedProfitSpot(String instanceName,
+  public void calculateIZSpotSamplesTrueCostEstimatedCostEstimatedProfit(String instanceName,
       String availabilityZone, long availabilityTime, float reliabilityLowerBound)
       throws ServiceRecommanderException {
 
@@ -101,7 +101,7 @@ public class ProfitEstimationExperiment {
     }
   }
 
-  public void calculateIZSamplesTrueCostEstimatedProfitOndemand(String instanceName,
+  public void calculateIZOndemandSamplesTrueCostEstimatedProfit(String instanceName,
       String region, long availabilityTime) throws ServiceRecommanderException {
 
     for (int dateIndex = 0; dateIndex < EXPERIMENT_TIMES.length; dateIndex++) {
@@ -131,7 +131,8 @@ public class ProfitEstimationExperiment {
         + "  Zones Num: " + availabilityZones.size());
     for (float slb : reliabilityList) {  //spot
       for (String availabilityZone : availabilityZones) {
-        calculateIZSamplesTrueCostEstimatedProfitSpot(instanceType, availabilityZone, availabilityTime, slb);
+        calculateIZSpotSamplesTrueCostEstimatedCostEstimatedProfit(
+                instanceType, availabilityZone, availabilityTime, slb);
       }
     }
 
@@ -139,14 +140,14 @@ public class ProfitEstimationExperiment {
     logger.debug("Start calculating trueCost/estimatedProfit OndemandInstance: " + instanceType
         + "  Regions Num: " + regions.size());
     for (String region : regions) { // ondemand
-      calculateIZSamplesTrueCostEstimatedProfitOndemand(instanceType, region,
+      calculateIZOndemandSamplesTrueCostEstimatedProfit(instanceType, region,
           availabilityTime);
     }
     logger.debug("Finished calculating trueCost/estimatedProfit Instance: " + instanceType);
     return true;
   }
 
-  public void profitEstimationEvaluation(final int availabilityTimeHours, List<Float> slbList) throws Exception {
+  public void costProfitEstimationEvaluation(final int availabilityTimeHours, List<Float> slbList) throws Exception {
     if (slbList != null) {
       this.reliabilityList = slbList;
     }
