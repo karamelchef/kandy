@@ -275,6 +275,7 @@ public class ProfitEstimationExperiment {
    */
   public int getPercentProfitErrorPerSlb(ArrayList<InstanceZoneProfit> izProfits) {
     Collections.sort(izProfits); // sort the list ascending based on profit, then check against true cost
+    chartGenerator.jpgXYChartProfitErrorVsTrueCost(izProfits);
     int n = izProfits.size();
     int numSwaps = 0;
     int numComparesTotal = 0;

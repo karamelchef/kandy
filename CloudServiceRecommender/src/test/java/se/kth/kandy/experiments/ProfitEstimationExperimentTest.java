@@ -43,7 +43,7 @@ public class ProfitEstimationExperimentTest {
 
   @Test
   public void testProfitEstimationEvaluation1() throws Exception {
-    profitEstimationExperiment.costProfitEstimationEvaluation(3, Arrays.asList(0.8f));
+    profitEstimationExperiment.costProfitEstimationEvaluation(3, Arrays.asList(0.6f));
   }
 
   //------------------------------------------------------------------------------------------
